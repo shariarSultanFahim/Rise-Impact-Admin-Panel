@@ -51,9 +51,7 @@ applyTo: "**"
 - Component files (widgets, layouts) must be PascalCase (e.g., UserList.tsx).
 - UI components must be kebab-case (e.g., button.tsx).
 - Every component folder must include an index.ts file exporting the component.
-- Each subfolder under components must export its submodules via an index.ts file.
 - In components/widgets, folder names must be kebab-case and component files inside must be PascalCase.
-- The widgets directory must also have an index.ts file that re-exports all widgets.
 - Prop and variable names must be intent-driven (e.g., onSubmit, isLoading, variant).
 - Shadcn/UI components under components/ui must be kept as-is; do not modify them.
 
@@ -90,12 +88,6 @@ applyTo: "**"
 - All components must comply with accessibility standards.
 - Use appropriate aria attributes where necessary.
 - Wrap meaningful images with semantic <figure> elements for proper context and captions.
-
-## Messaging
-
-- No user-facing text should be written directly inside components.
-- All texts must come from locale files under src/messages.
-- Translation keys must be descriptive, consistent, and reusable.
 
 ## Icons
 

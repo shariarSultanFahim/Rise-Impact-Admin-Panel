@@ -2,24 +2,14 @@
 
 import type { ReactNode } from "react";
 
-import type { MessageDictionary } from "@/types/messages";
+import { CounterProvider, QueryProvider, ThemeProvider } from "@/providers";
 
-import { CopyProvider, CounterProvider, QueryProvider, ThemeProvider } from "@/providers";
-
-export function Providers({
-  children,
-  messages
-}: {
-  children: ReactNode;
-  messages: MessageDictionary;
-}) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <CopyProvider messages={messages}>
-        <CounterProvider>
-          <QueryProvider>{children}</QueryProvider>
-        </CounterProvider>
-      </CopyProvider>
+      <CounterProvider>
+        <QueryProvider>{children}</QueryProvider>
+      </CounterProvider>
     </ThemeProvider>
   );
 }

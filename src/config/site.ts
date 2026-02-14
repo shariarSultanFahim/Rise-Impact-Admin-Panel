@@ -1,14 +1,13 @@
 import type { SiteConfig } from "@/types/site-config";
 import { env } from "@/env";
 
-// FIXME: Update site branding, theme color, social links, and OG image
 export const siteConfig: SiteConfig = {
-  name: "Next.js 16 Boilerplate",
+  name: "Rise & Impact Admin Panel",
   description: "Production-ready Next.js 16+ starter built with Tailwind CSS 4 and TypeScript.",
   url: env.NEXT_PUBLIC_SITE_URL,
   author: "",
   locale: "en",
-  themeColor: "#ffffff",
+  themeColor: "#576045",
   keywords: ["nextjs", "typescript", "tailwindcss", "boilerplate", "starter"],
   social: {
     twitter: "",
