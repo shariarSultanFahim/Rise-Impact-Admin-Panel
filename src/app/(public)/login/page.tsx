@@ -1,3 +1,7 @@
+import LoginForm from "./component/loginForm";
+
 export default function LoginPage() {
-  return <section className="flex h-screen items-center justify-center">Login Page </section>;
+  return <section className="bg-background flex items-center justify-center">
+      <LoginForm/>
+     </section>;
 }

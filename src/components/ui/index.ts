@@ -1,5 +1,7 @@
 export * from "./button";
 export * from "./card";
+export * from "./checkbox";
+export * from "./dialog";
 export * from "./dropdown-menu";
 export * from "./field";
 export * from "./form";
@@ -9,3 +11,4 @@ export * from "./separator";
 export * from "./sonner";
 export * from "./table";
 export * from "./tooltip";
+
