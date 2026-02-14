@@ -1,0 +1,112 @@
+{
+  "heading": {
+    "title": "User Management",
+    "subtitle": "Manage users, roles, and access permissions"
+  },
+  "filters": {
+    "roles": ["All Roles", "Student", "Instructor", "Admin"],
+    "status": ["All Status", "Active", "Inactive"]
+  },
+  "stats": [
+    {
+      "id": "total-users",
+      "title": "Total Users",
+      "value": "8"
+    },
+    {
+      "id": "active-users",
+      "title": "Active Users",
+      "value": "7"
+    },
+    {
+      "id": "students",
+      "title": "Students",
+      "value": "5"
+    },
+    {
+      "id": "instructors",
+      "title": "Instructors",
+      "value": "2"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-1",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@email.com",
+      "role": "Student",
+      "status": "Active",
+      "courses": "4 enrolled",
+      "lastActive": "2 hours ago"
+    },
+    {
+      "id": "user-2",
+      "name": "Michael Chen",
+      "email": "michael.c@email.com",
+      "role": "Student",
+      "status": "Active",
+      "courses": "6 enrolled",
+      "lastActive": "1 day ago"
+    },
+    {
+      "id": "user-3",
+      "name": "Dr. Emma Davis",
+      "email": "emma.d@email.com",
+      "role": "Instructor",
+      "status": "Active",
+      "courses": "N/A",
+      "lastActive": "3 hours ago"
+    },
+    {
+      "id": "user-4",
+      "name": "Alex Martinez",
+      "email": "alex.m@email.com",
+      "role": "Student",
+      "status": "Active",
+      "courses": "3 enrolled",
+      "lastActive": "5 hours ago"
+    },
+    {
+      "id": "user-5",
+      "name": "Priya Patel",
+      "email": "priya.p@email.com",
+      "role": "Student",
+      "status": "Inactive",
+      "courses": "2 enrolled",
+      "lastActive": "2 weeks ago"
+    },
+    {
+      "id": "user-6",
+      "name": "James Wilson",
+      "email": "james.w@email.com",
+      "role": "Admin",
+      "status": "Active",
+      "courses": "N/A",
+      "lastActive": "30 minutes ago"
+    },
+    {
+      "id": "user-7",
+      "name": "Lisa Anderson",
+      "email": "lisa.a@email.com",
+      "role": "Student",
+      "status": "Active",
+      "courses": "5 enrolled",
+      "lastActive": "1 hour ago"
+    },
+    {
+      "id": "user-8",
+      "name": "David Kim",
+      "email": "david.k@email.com",
+      "role": "Instructor",
+      "status": "Active",
+      "courses": "N/A",
+      "lastActive": "4 hours ago"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "totalPages": 3,
+    "showing": 8,
+    "total": 8
+  }
+}

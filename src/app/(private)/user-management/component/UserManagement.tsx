@@ -1,0 +1,243 @@
+import {
+  Download,
+  Eye,
+  Pencil,
+  Search,
+  SlidersHorizontal,
+  Trash2
+} from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import type { UserManagementData } from "@/types/user-management";
+
+interface UserManagementProps {
+  data: UserManagementData;
+}
+
+function getInitials(name: string) {
+  const parts = name.split(" ").filter(Boolean);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
+  return (first + last).toUpperCase();
+}
+
+function roleBadgeClass(role: string) {
+  const normalized = role.toLowerCase();
+  if (normalized === "student") {
+    return "bg-emerald-50 text-emerald-700";
+  }
+  if (normalized === "instructor") {
+    return "bg-orange-50 text-orange-700";
+  }
+  if (normalized === "admin") {
+    return "bg-rose-50 text-rose-700";
+  }
+  return "bg-muted text-muted-foreground";
+}
+
+function statusBadgeClass(status: string) {
+  const normalized = status.toLowerCase();
+  if (normalized === "active") {
+    return "bg-emerald-100 text-emerald-700";
+  }
+  if (normalized === "inactive") {
+    return "bg-slate-100 text-slate-600";
+  }
+  return "bg-muted text-muted-foreground";
+}
+
+export default function UserManagement({ data }: UserManagementProps) {
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold text-foreground">{data.heading.title}</h1>
+        <p className="text-sm text-muted-foreground">{data.heading.subtitle}</p>
+      </header>
+
+      <Card className="bg-white border-none shadow-none p-0 m-0">
+        <CardContent className="space-y-5 p-0">
+          <Card className="flex flex-col px-4 gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative w-full lg:max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or email..."
+                className="pl-9"
+                aria-label="Search users"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Select>
+                <SelectTrigger className="w-fit gap-2">
+                  <span className="inline-flex items-center justify-center rounded-md border border-muted px-2 py-1 text-xs text-muted-foreground">
+                    <SlidersHorizontal className="h-3 w-3" />
+                  </span>
+                  <SelectValue placeholder={data.filters.roles[0]} />
+                </SelectTrigger>
+                <SelectContent>
+                  {data.filters.roles.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select>
+                <SelectTrigger className="w-fit">
+                  <SelectValue placeholder={data.filters.status[0]} />
+                </SelectTrigger>
+                <SelectContent>
+                  {data.filters.status.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button variant="default" className="gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {data.stats.map((stat) => (
+              <Card key={stat.id} className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="shadow-sm">
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Courses</TableHead>
+                    <TableHead>Last Active</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="bg-muted" size="sm" >
+                            <AvatarImage src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name.split(' ')[0]}`} alt={user.name} />
+                            <AvatarFallback className="text-xs font-semibold">
+                              {getInitials(user.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{user.name}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-semibold ${roleBadgeClass(
+                            user.role
+                          )}`}
+                        >
+                          {user.role}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadgeClass(
+                            user.status
+                          )}`}
+                        >
+                          {user.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {user.courses}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {user.lastActive}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2 text-muted-foreground">
+                          <Button variant="ghost" size="icon-sm" aria-label="View user">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon-sm" aria-label="Edit user">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon-sm" aria-label="Delete user">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  Showing {data.pagination.showing} of {data.pagination.total} users
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    Previous
+                  </Button>
+                  {Array.from({ length: data.pagination.totalPages }).map((_, index) => {
+                    const page = index + 1;
+                    const isActive = page === data.pagination.page;
+                    return (
+                      <Button
+                        key={`page-${page}`}
+                        variant={isActive ? "default" : "outline"}
+                        size="sm"
+                        className={isActive ? "bg-primary text-primary-foreground" : ""}
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+                  <Button variant="outline" size="sm">
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
