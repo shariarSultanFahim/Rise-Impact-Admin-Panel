@@ -1,22 +1,24 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { Checkbox } from "@/components/ui";
 import { Button } from "@/components/ui/button";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+
 import { loginSchema, type LoginFormData } from "../schema/login.schema";
 
 export default function LoginForm() {
@@ -41,24 +43,17 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="flex items-center justify-center px-4 w-full h-screen">
+    <div className="flex h-screen w-full items-center justify-center px-4">
       <div className="w-full max-w-lg rounded-lg bg-white p-8 shadow-lg">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
           <div className="relative h-20 w-20">
-            <Image
-              src="/logo.png"
-              alt="Rise & Impact"
-              fill
-              className="object-contain"
-            />
+            <Image src="/logo.png" alt="Rise & Impact" fill className="object-contain" />
           </div>
         </div>
 
         {/* Heading */}
-        <h1 className="mb-8 text-start text-3xl text-foreground">
-          Welcome Back
-        </h1>
+        <h1 className="mb-8 text-start text-3xl text-foreground">Welcome Back</h1>
 
         {/* Form */}
         <Form {...form}>
@@ -69,9 +64,7 @@ export default function LoginForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-foreground">
-                    User Name
-                  </FormLabel>
+                  <FormLabel className="text-sm text-foreground">User Name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="hannah.green@test.com"
@@ -92,9 +85,7 @@ export default function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-foreground">
-                    Password
-                  </FormLabel>
+                  <FormLabel className="text-sm text-foreground">Password</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Password123@"
@@ -112,10 +103,7 @@ export default function LoginForm() {
             {/* Remember Me Checkbox */}
             <div className="flex items-center space-x-2">
               <Checkbox id="remember" />
-              <label
-                htmlFor="remember"
-                className="text-sm  text-foreground cursor-pointer"
-              >
+              <label htmlFor="remember" className="cursor-pointer text-sm text-foreground">
                 Remember me on this computer
               </label>
             </div>
@@ -124,7 +112,7 @@ export default function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#576045] hover:bg-[#4a5539] text-white font-semibold py-2 h-auto"
+              className="h-auto w-full bg-[#576045] py-2 font-semibold text-white hover:bg-[#4a5539]"
             >
               {isLoading ? "Logging in..." : "LOG IN"}
             </Button>
@@ -135,7 +123,7 @@ export default function LoginForm() {
         <div className="mt-6 text-center">
           <Link
             href="/forgot-password"
-            className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+            className="text-sm font-medium text-gray-500 hover:text-gray-700"
           >
             Forgot Password?
           </Link>

@@ -1,11 +1,13 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +26,7 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+
 import { ForgotPasswordFormData, forgotPasswordSchema } from "../schema/forgotPassword.schema";
 
 export default function ForgotPasswordForm() {
@@ -74,7 +76,7 @@ export default function ForgotPasswordForm() {
       inputRefs.current[index - 1]?.focus();
     }
   }
-  
+
   async function handleOtpResend() {
     setIsLoading(true);
     try {
@@ -101,25 +103,20 @@ export default function ForgotPasswordForm() {
   }
 
   return (
-    <div className="flex items-center justify-center px-4 w-full h-screen">
+    <div className="flex h-screen w-full items-center justify-center px-4">
       <div className="w-full max-w-lg rounded-lg bg-white p-8 shadow-lg">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
           <div className="relative h-20 w-20">
-            <Image
-              src="/logo.png"
-              alt="Rise & Impact"
-              fill
-              className="object-contain"
-            />
+            <Image src="/logo.png" alt="Rise & Impact" fill className="object-contain" />
           </div>
         </div>
 
         {/* Heading */}
-        <h1 className="text-start text-3xl text-foreground">
-          Forgot password
-        </h1>
-        <p className="text-sm my-4">Enter your email for the verification proccess,we will send 4 digits code to your email.</p>
+        <h1 className="text-start text-3xl text-foreground">Forgot password</h1>
+        <p className="my-4 text-sm">
+          Enter your email for the verification proccess,we will send 4 digits code to your email.
+        </p>
 
         {/* Form */}
         <Form {...form}>
@@ -130,9 +127,7 @@ export default function ForgotPasswordForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-foreground">
-                    E-mail
-                  </FormLabel>
+                  <FormLabel className="text-sm text-foreground">E-mail</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="hannah.green@test.com"
@@ -147,13 +142,11 @@ export default function ForgotPasswordForm() {
               )}
             />
 
-    
-
             {/* Login Button */}
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#576045] hover:bg-[#4a5539] text-white font-semibold py-2 h-auto"
+              className="h-auto w-full bg-[#576045] py-2 font-semibold text-white hover:bg-[#4a5539]"
             >
               {isLoading ? "Sending..." : "CONTINUE"}
             </Button>
@@ -162,11 +155,10 @@ export default function ForgotPasswordForm() {
 
         {/* Forgot Password Link */}
         <div className="mt-6 text-center">
-          <Link
-            href="/login"
-            className="text-sm text-gray-500 hover:text-gray-700 font-medium"
-          >
-            <Button variant="outline" className="w-full ">Back to Login</Button>
+          <Link href="/login" className="text-sm font-medium text-gray-500 hover:text-gray-700">
+            <Button variant="outline" className="w-full">
+              Back to Login
+            </Button>
           </Link>
         </div>
       </div>
@@ -196,7 +188,7 @@ export default function ForgotPasswordForm() {
                   value={digit}
                   onChange={(event) => handleOtpChange(event.target.value, index)}
                   onKeyDown={(event) => handleOtpKeyDown(event, index)}
-                  className="h-14 w-14 rounded-md border border-secondary text-center text-xl font-semibold text-foreground focus:border-[#d08c3d] focus:outline-none focus:ring-2 focus:ring-[#d08c3d]/30"
+                  className="h-14 w-14 rounded-md border border-secondary text-center text-xl font-semibold text-foreground focus:border-[#d08c3d] focus:ring-2 focus:ring-[#d08c3d]/30 focus:outline-none"
                 />
               ))}
             </div>
@@ -208,7 +200,7 @@ export default function ForgotPasswordForm() {
               type="button"
               onClick={handleOtpSubmit}
               disabled={isLoading}
-              className="w-full bg-[#576045] hover:bg-[#4a5539] text-white font-semibold py-2 h-auto"
+              className="h-auto w-full bg-[#576045] py-2 font-semibold text-white hover:bg-[#4a5539]"
             >
               {isLoading ? "Verifying..." : "CONTINUE"}
             </Button>

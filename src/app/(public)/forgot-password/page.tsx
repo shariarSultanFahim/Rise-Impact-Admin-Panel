@@ -1,7 +1,9 @@
 import ForgotPasswordForm from "./component/ForgotPasswordForm";
 
 export default function ForgotPasswordPage() {
-  return <section className="bg-background flex items-center justify-center">
-      <ForgotPasswordForm/>
-     </section>;
+  return (
+    <section className="flex items-center justify-center bg-background">
+      <ForgotPasswordForm />
+    </section>
+  );
 }

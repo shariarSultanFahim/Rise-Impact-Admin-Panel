@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { getUserManagementData } from "@/data/user-management";
+
 import UserManagement from "./component/UserManagement";
 import UserManagementSkeleton from "./component/UserManagementSkeleton";
 

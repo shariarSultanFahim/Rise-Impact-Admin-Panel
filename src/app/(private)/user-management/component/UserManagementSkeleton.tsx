@@ -44,7 +44,7 @@ export default function UserManagementSkeleton() {
             <CardContent className="space-y-4">
               {Array.from({ length: 6 }).map((_, index) => (
                 <div key={`row-${index}`} className="grid grid-cols-6 gap-4">
-                  <Skeleton className="h-10 w-full col-span-2" />
+                  <Skeleton className="col-span-2 h-10 w-full" />
                   <Skeleton className="h-10 w-full" />
                   <Skeleton className="h-10 w-full" />
                   <Skeleton className="h-10 w-full" />

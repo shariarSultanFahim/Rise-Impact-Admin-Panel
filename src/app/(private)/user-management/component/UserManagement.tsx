@@ -1,11 +1,6 @@
-import {
-  Download,
-  Eye,
-  Pencil,
-  Search,
-  SlidersHorizontal,
-  Trash2
-} from "lucide-react";
+import { Download, Eye, Pencil, Search, SlidersHorizontal, Trash2 } from "lucide-react";
+
+import type { UserManagementData } from "@/types/user-management";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,7 +21,6 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import type { UserManagementData } from "@/types/user-management";
 
 interface UserManagementProps {
   data: UserManagementData;
@@ -35,7 +29,7 @@ interface UserManagementProps {
 function getInitials(name: string) {
   const parts = name.split(" ").filter(Boolean);
   const first = parts[0]?.[0] ?? "";
-  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
   return (first + last).toUpperCase();
 }
 
@@ -72,11 +66,11 @@ export default function UserManagement({ data }: UserManagementProps) {
         <p className="text-sm text-muted-foreground">{data.heading.subtitle}</p>
       </header>
 
-      <Card className="bg-white border-none shadow-none p-0 m-0">
+      <Card className="m-0 border-none bg-white p-0 shadow-none">
         <CardContent className="space-y-5 p-0">
-          <Card className="flex flex-col px-4 gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <Card className="flex flex-col gap-3 px-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative w-full lg:max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by name or email..."
                 className="pl-9"
@@ -153,8 +147,11 @@ export default function UserManagement({ data }: UserManagementProps) {
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="bg-muted" size="sm" >
-                            <AvatarImage src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name.split(' ')[0]}`} alt={user.name} />
+                          <Avatar className="bg-muted" size="sm">
+                            <AvatarImage
+                              src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name.split(" ")[0]}`}
+                              alt={user.name}
+                            />
                             <AvatarFallback className="text-xs font-semibold">
                               {getInitials(user.name)}
                             </AvatarFallback>

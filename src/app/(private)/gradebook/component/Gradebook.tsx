@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GradebookData } from "@/types/gradebook";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import GradebookTable from "./GradebookTable";
 
@@ -19,8 +20,7 @@ export default function Gradebook({ data }: GradebookProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.stats.map((stat) => {
-          const valueClass =
-            stat.id === "needs-attention" ? "text-rose-500" : "text-foreground";
+          const valueClass = stat.id === "needs-attention" ? "text-rose-500" : "text-foreground";
 
           return (
             <Card key={stat.id} className="shadow-sm">

@@ -1,11 +1,11 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import type { ReactNode } from "react";
 
 import { seoConfig } from "@/config/seo";
 
-import { Providers } from "@/providers";
 import { Toaster } from "@/ui";
+import { Providers } from "@/providers";
 
 import "@/styles/globals.css";
 

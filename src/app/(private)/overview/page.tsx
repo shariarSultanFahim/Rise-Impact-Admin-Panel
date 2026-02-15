@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { getOverviewData } from "@/data/overview";
+
 import Overview from "./components/Overview";
 import OverviewSkeleton from "./components/OverviewSkeleton";
 

@@ -12,11 +12,17 @@ export type {
 export type { DataTableProps } from "./data-table";
 export type {
   DiscussionMessage,
-  DiscussionThreadItem,
   DiscussionsData,
   DiscussionsHeading,
-  DiscussionsPagination
+  DiscussionsPagination,
+  DiscussionThreadItem
 } from "./discussions";
+export type {
+  CreateFeedbackInput,
+  Feedback,
+  FeedbackResponse,
+  UpdateFeedbackInput
+} from "./feedback";
 export type {
   GamificationBadge,
   GamificationCertificateTemplate,
@@ -35,13 +41,12 @@ export type {
 } from "./gradebook";
 export type {
   NotificationAudience,
-  NotificationTemplate,
   NotificationsData,
-  NotificationsHeading
+  NotificationsHeading,
+  NotificationTemplate
 } from "./notifications";
 export type {
   OverviewActivity,
-  OverviewChart,
   OverviewData,
   OverviewHeading,
   OverviewIconKey,
@@ -57,9 +62,3 @@ export type {
   UserManagementStat,
   UserManagementUser
 } from "./user-management";
-export type {
-  Feedback,
-  CreateFeedbackInput,
-  UpdateFeedbackInput,
-  FeedbackResponse
-} from "./feedback";

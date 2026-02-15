@@ -51,15 +51,15 @@ export default function GradebookTable({ students, filters, pagination }: Gradeb
   return (
     <Card className="shadow-sm">
       <CardContent className="space-y-4 pt-6">
-        <div className="gap-3 lg:flex-row lg:items-center lg:justify-between flex flex-col">
-          <div className="lg:max-w-xl relative w-full">
-            <Search className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-xl">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search students..." className="pl-9" aria-label="Search students" />
           </div>
-          <div className="gap-3 flex flex-wrap items-center">
+          <div className="flex flex-wrap items-center gap-3">
             <Select>
-              <SelectTrigger className="gap-2 w-fit">
-                <span className="rounded-md border-muted px-2 py-1 text-xs text-muted-foreground inline-flex items-center justify-center border">
+              <SelectTrigger className="w-fit gap-2">
+                <span className="inline-flex items-center justify-center rounded-md border border-muted px-2 py-1 text-xs text-muted-foreground">
                   <SlidersHorizontal className="h-3 w-3" />
                 </span>
                 <SelectValue placeholder={filters.courses[0]} />
@@ -100,7 +100,7 @@ export default function GradebookTable({ students, filters, pagination }: Gradeb
                 {students.map((student) => (
                   <TableRow key={student.id}>
                     <TableCell>
-                      <div className="gap-3 flex items-center">
+                      <div className="flex items-center gap-3">
                         <Avatar className="bg-muted" size="sm">
                           <AvatarImage
                             src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${student.name.split(" ")[0]}`}
@@ -129,7 +129,7 @@ export default function GradebookTable({ students, filters, pagination }: Gradeb
                       {student.overall}%
                     </TableCell>
                     <TableCell>
-                      <div className="gap-2 flex items-center">
+                      <div className="flex items-center gap-2">
                         <progress
                           value={student.completion}
                           max={100}
@@ -143,11 +143,11 @@ export default function GradebookTable({ students, filters, pagination }: Gradeb
               </TableBody>
             </Table>
 
-            <div className="mt-4 gap-3 pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between flex flex-col border-t">
+            <div className="mt-4 flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <span>
                 Showing {pagination.showing} of {pagination.total} users
               </span>
-              <div className="gap-2 flex items-center">
+              <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm">
                   Previous
                 </Button>

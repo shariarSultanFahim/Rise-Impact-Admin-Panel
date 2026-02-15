@@ -1,8 +1,9 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
 import { useState } from "react";
+import Image from "next/image";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+
 import { PasswordResetFormData, passwordResetSchema } from "../schema/reset.password.schema";
 
 export default function PasswordResetForm() {
@@ -39,25 +41,20 @@ export default function PasswordResetForm() {
   }
 
   return (
-    <div className="flex items-center justify-center px-4 w-full h-screen">
+    <div className="flex h-screen w-full items-center justify-center px-4">
       <div className="w-full max-w-lg rounded-lg bg-white p-8 shadow-lg">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
           <div className="relative h-20 w-20">
-            <Image
-              src="/logo.png"
-              alt="Rise & Impact"
-              fill
-              className="object-contain"
-            />
+            <Image src="/logo.png" alt="Rise & Impact" fill className="object-contain" />
           </div>
         </div>
 
         {/* Heading */}
-        <h1 className=" text-start text-3xl text-foreground">
-          New Password
-        </h1>
-        <p className="my-4">Set the new password for your account so you can login and access all featuress.</p>
+        <h1 className="text-start text-3xl text-foreground">New Password</h1>
+        <p className="my-4">
+          Set the new password for your account so you can login and access all featuress.
+        </p>
 
         {/* Form */}
         <Form {...form}>
@@ -68,9 +65,7 @@ export default function PasswordResetForm() {
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-foreground">
-                    Enter New Password
-                  </FormLabel>
+                  <FormLabel className="text-sm text-foreground">Enter New Password</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="8 digits at least, with letters and numbers"
@@ -91,9 +86,7 @@ export default function PasswordResetForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-foreground">
-                    Confirm Password
-                  </FormLabel>
+                  <FormLabel className="text-sm text-foreground">Confirm Password</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Confirm your new password"
@@ -108,18 +101,16 @@ export default function PasswordResetForm() {
               )}
             />
 
-
             {/* Login Button */}
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#576045] hover:bg-[#4a5539] text-white font-semibold py-2 h-auto"
+              className="h-auto w-full bg-[#576045] py-2 font-semibold text-white hover:bg-[#4a5539]"
             >
               {isLoading ? "Updating password..." : "UPDATE"}
             </Button>
           </form>
         </Form>
-
       </div>
     </div>
   );
