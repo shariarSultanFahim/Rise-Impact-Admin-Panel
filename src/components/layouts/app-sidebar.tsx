@@ -16,6 +16,7 @@ import {
   LogOut,
   Medal,
   MessageCircle,
+  Notebook,
   UserRoundPen
 } from "lucide-react";
 
@@ -70,6 +71,7 @@ const data = {
           url: "/discussions",
           icon: MessageCircle
         },
+        { title: "Quiz Builder", url: "/quiz-builder", icon: Notebook },
         {
           title: "Notifications",
           url: "/notifications",
