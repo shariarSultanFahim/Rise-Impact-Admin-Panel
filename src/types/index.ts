@@ -57,3 +57,9 @@ export type {
   UserManagementStat,
   UserManagementUser
 } from "./user-management";
+export type {
+  Feedback,
+  CreateFeedbackInput,
+  UpdateFeedbackInput,
+  FeedbackResponse
+} from "./feedback";

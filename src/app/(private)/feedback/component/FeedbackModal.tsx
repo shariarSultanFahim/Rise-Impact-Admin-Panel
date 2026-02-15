@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { SendIcon, SparklesIcon, StarHalfIcon, StarIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import type { FeedbackSubmission } from "@/types/feedback";
+import { FeedbackSubmission } from "@/types/feedback";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";

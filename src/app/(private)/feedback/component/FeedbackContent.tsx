@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import { SearchIcon } from "lucide-react";
 
-import type { FeedbackData, FeedbackSubmission } from "@/types/feedback";
+import { FeedbackData, FeedbackSubmission } from "@/types/feedback";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

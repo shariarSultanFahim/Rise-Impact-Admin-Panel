@@ -4,7 +4,7 @@ import type { GamificationLeaderboardEntry } from "@/types/gamification";
 
 import { cn } from "@/lib/utils";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +63,10 @@ export default function Leaderboard({ entries }: LeaderboardProps) {
                     {entry.rank}
                   </Badge>
                   <Avatar size="sm">
+                    <AvatarImage
+                      src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${entry.name}`}
+                      alt={entry.name}
+                    />
                     <AvatarFallback>{getInitials(entry.name)}</AvatarFallback>
                   </Avatar>
                   <div>

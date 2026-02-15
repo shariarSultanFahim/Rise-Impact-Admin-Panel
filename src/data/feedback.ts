@@ -1,4 +1,4 @@
-import type { FeedbackData } from "@/types/feedback";
+import { FeedbackData } from "@/types/feedback";
 
 import feedbackData from "./feedback.json";
 
