@@ -50,10 +50,10 @@ applyTo: "**"
 - All file and folder names must be kebab-case (e.g., locale-switcher, query-client.ts).
 - Component files (widgets, layouts) must be PascalCase (e.g., UserList.tsx).
 - UI components must be kebab-case (e.g., button.tsx).
-- Every component folder must include an index.ts file exporting the component.
 - In components/widgets, folder names must be kebab-case and component files inside must be PascalCase.
 - Prop and variable names must be intent-driven (e.g., onSubmit, isLoading, variant).
 - Shadcn/UI components under components/ui must be kept as-is; do not modify them.
+- Reusable components must be placed under src/components; domain-specific components must be under src/component subfolders (e.g., src/app/user/component/UserList.tsx).
 
 ## Naming Conventions
 

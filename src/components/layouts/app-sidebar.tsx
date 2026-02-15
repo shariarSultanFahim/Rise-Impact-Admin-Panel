@@ -2,6 +2,7 @@
 import {
   BookOpen,
   ClipboardClock,
+  GraduationCap,
   HeartHandshake,
   LayoutDashboard,
   LogOut,
@@ -52,6 +53,11 @@ const data = {
           title: "Course",
           url: "/courses",
           icon: BookOpen
+        },
+        {
+          title: "Gradebook",
+          url: "/gradebook",
+          icon: GraduationCap
         }
       ]
     }
