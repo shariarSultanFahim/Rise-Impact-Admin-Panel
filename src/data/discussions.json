@@ -1,0 +1,96 @@
+{
+  "heading": {
+    "title": "Discussion Moderation",
+    "subtitle": "Monitor and participate in student discussions"
+  },
+  "threads": [
+    {
+      "id": "thread-1",
+      "title": "How to improve active listening skills?",
+      "author": "Sarah Johnson",
+      "course": "Communication Skills",
+      "replies": 15,
+      "lastActive": "1 day ago",
+      "isPinned": false,
+      "messages": [
+        {
+          "id": "thread-1-message-1",
+          "author": "Sarah Johnson",
+          "role": "Student",
+          "time": "2 hours ago",
+          "content": "I've been practicing active listening but still struggle with staying focused. Any tips?"
+        },
+        {
+          "id": "thread-1-message-2",
+          "author": "Instructor Sadat",
+          "role": "Instructor",
+          "time": "1 hour ago",
+          "content": "Great question! Try the RASA technique: Receive (pay attention), Appreciate (make encouraging sounds), Summarize (repeat back what you heard), and Ask questions. Start with one conversation a day and build from there."
+        },
+        {
+          "id": "thread-1-message-3",
+          "author": "Instructor Sadat",
+          "role": "Instructor",
+          "time": "Just now",
+          "content": "Yaa"
+        }
+      ]
+    },
+    {
+      "id": "thread-2",
+      "title": "Budget planning for college students",
+      "author": "Michael Chen",
+      "course": "Financial Literacy",
+      "replies": 12,
+      "lastActive": "5 hours ago",
+      "isPinned": true,
+      "messages": [
+        {
+          "id": "thread-2-message-1",
+          "author": "Michael Chen",
+          "role": "Student",
+          "time": "5 hours ago",
+          "content": "What are the best ways to budget for textbooks and rent on a student income?"
+        },
+        {
+          "id": "thread-2-message-2",
+          "author": "Instructor Sadat",
+          "role": "Instructor",
+          "time": "3 hours ago",
+          "content": "Start with fixed costs, set a savings target, and then allocate the remainder. Apps can help track spending and cut non-essentials."
+        }
+      ]
+    },
+    {
+      "id": "thread-3",
+      "title": "Dealing with procrastination",
+      "author": "Emma Davis",
+      "course": "Time Management",
+      "replies": 15,
+      "lastActive": "1 day ago",
+      "isPinned": false,
+      "messages": [
+        {
+          "id": "thread-3-message-1",
+          "author": "Emma Davis",
+          "role": "Student",
+          "time": "1 day ago",
+          "content": "I keep delaying assignments until the last minute. How do you build momentum?"
+        },
+        {
+          "id": "thread-3-message-2",
+          "author": "Instructor Sadat",
+          "role": "Instructor",
+          "time": "23 hours ago",
+          "content": "Try breaking tasks into 20-minute blocks and celebrate small wins. Consistency beats intensity."
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "totalPages": 3,
+    "showing": 3,
+    "total": 8
+  }
+}

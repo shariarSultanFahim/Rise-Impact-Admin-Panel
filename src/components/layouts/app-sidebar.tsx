@@ -1,17 +1,21 @@
 "use client";
+
+import * as React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import {
   BookOpen,
+  ChartAreaIcon,
   ClipboardClock,
   GraduationCap,
   HeartHandshake,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   UserRoundPen
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import * as React from "react";
 
 import {
   Sidebar,
@@ -58,6 +62,11 @@ const data = {
           title: "Gradebook",
           url: "/gradebook",
           icon: GraduationCap
+        },
+        {
+          title: "Discussions",
+          url: "/discussions",
+          icon: MessageCircle
         }
       ]
     }
@@ -82,7 +91,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-   const pathname = usePathname();
+  const pathname = usePathname();
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
@@ -105,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-       <SidebarContent>
+      <SidebarContent>
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
@@ -113,10 +122,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
+                    <SidebarMenuButton
+                      asChild
                       isActive={pathname === item.url}
-                      className="data-[active=true]:bg-white/25 data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm data-[active=true]:text-primary-foreground"
+                      className="data-[active=true]:bg-white/25 data-[active=true]:text-primary-foreground data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm"
                     >
                       <Link href={item.url}>
                         <item.icon />
@@ -153,7 +162,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button variant="outline" className="w-full bg-transparent border-secondary group-data-[collapsible=icon]:p-0">
+              <Button
+                variant="outline"
+                className="w-full border-secondary bg-transparent group-data-[collapsible=icon]:p-0"
+              >
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
               </Button>
