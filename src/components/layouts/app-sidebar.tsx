@@ -14,6 +14,7 @@ import {
   HeartHandshake,
   LayoutDashboard,
   LogOut,
+  Medal,
   MessageCircle,
   UserRoundPen
 } from "lucide-react";
@@ -85,6 +86,11 @@ const data = {
           icon: HeartHandshake
         },
         {
+          title: "Gamification",
+          url: "/gamification",
+          icon: Medal
+        },
+        {
           title: "Terms & Conditions",
           url: "/terms",
           icon: UserRoundPen
@@ -135,6 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>

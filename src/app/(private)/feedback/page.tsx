@@ -1,22 +1,11 @@
-import { Suspense } from "react";
-
-import { getFeedbackData } from "@/data/feedback";
-
-import FeedbackContent from "./component/FeedbackContent";
-import FeedbackSkeleton from "./component/FeedbackSkeleton";
-
-async function FeedbackLoader() {
-  const data = await getFeedbackData();
-
-  return <FeedbackContent data={data} />;
-}
-
 export default function FeedbackPage() {
   return (
     <section className="flex flex-col gap-6">
-      <Suspense fallback={<FeedbackSkeleton />}>
-        <FeedbackLoader />
-      </Suspense>
+      <h1 className="text-2xl font-bold">Feedback</h1>
+      <p className="text-muted-foreground">
+        We value your feedback! Please let us know if you have any suggestions or encounter any
+        issues.
+      </p>
     </section>
   );
 }

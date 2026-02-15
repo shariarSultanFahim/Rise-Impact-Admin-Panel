@@ -18,13 +18,13 @@ export type {
   DiscussionsPagination
 } from "./discussions";
 export type {
-  FeedbackData,
-  FeedbackFilters,
-  FeedbackHeading,
-  FeedbackPagination,
-  FeedbackStat,
-  FeedbackSubmission
-} from "./feedback";
+  GamificationBadge,
+  GamificationCertificateTemplate,
+  GamificationData,
+  GamificationHeading,
+  GamificationLeaderboardEntry,
+  GamificationStat
+} from "./gamification";
 export type {
   GradebookData,
   GradebookFilters,

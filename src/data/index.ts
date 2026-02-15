@@ -1,6 +1,6 @@
 export * from "./analytics";
 export * from "./discussions";
-export * from "./feedback";
+export * from "./gamification";
 export * from "./gradebook";
 export * from "./notifications";
 export * from "./stack";

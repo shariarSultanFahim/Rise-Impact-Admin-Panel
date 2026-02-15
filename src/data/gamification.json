@@ -1,0 +1,113 @@
+{
+  "heading": {
+    "title": "Gamification Management",
+    "subtitle": "Manage badges, achievements, and student leaderboards"
+  },
+  "badges": [
+    {
+      "id": "master-communicator",
+      "title": "Master Communicator",
+      "description": "Complete all Communication Skills modules",
+      "criteria": "Finish all 8 modules with 90%+ score",
+      "awarded": 24,
+      "icon": "mic"
+    },
+    {
+      "id": "time-wizard",
+      "title": "Time Wizard",
+      "description": "Excel at time management",
+      "criteria": "Complete Time Management course in under 2 weeks",
+      "awarded": 18,
+      "icon": "timer"
+    },
+    {
+      "id": "finance-guru",
+      "title": "Finance Guru",
+      "description": "Master financial literacy",
+      "criteria": "Score 95%+ on all Financial Literacy quizzes",
+      "awarded": 15,
+      "icon": "coins"
+    },
+    {
+      "id": "critical-thinker",
+      "title": "Critical Thinker",
+      "description": "Demonstrate exceptional analytical skills",
+      "criteria": "Complete Critical Thinking course with distinction",
+      "awarded": 12,
+      "icon": "brain"
+    }
+  ],
+  "leaderboard": [
+    {
+      "id": "leader-1",
+      "rank": 1,
+      "name": "Emma Davis",
+      "points": 2450,
+      "badges": 8,
+      "highlight": true
+    },
+    {
+      "id": "leader-2",
+      "rank": 2,
+      "name": "Sarah Johnson",
+      "points": 2280,
+      "badges": 7,
+      "highlight": true
+    },
+    {
+      "id": "leader-3",
+      "rank": 3,
+      "name": "Michael Chen",
+      "points": 2150,
+      "badges": 6,
+      "highlight": true
+    },
+    {
+      "id": "leader-4",
+      "rank": 4,
+      "name": "Alex Martinez",
+      "points": 1920,
+      "badges": 5,
+      "highlight": false
+    },
+    {
+      "id": "leader-5",
+      "rank": 5,
+      "name": "Priya Patel",
+      "points": 1850,
+      "badges": 5,
+      "highlight": false
+    }
+  ],
+  "certificates": [
+    {
+      "id": "course-completion",
+      "title": "Course Completion Certificate",
+      "description": "Awarded upon 100% course completion",
+      "enabled": true
+    },
+    {
+      "id": "excellence-award",
+      "title": "Excellence Award",
+      "description": "Awarded for 95%+ overall score",
+      "enabled": true
+    }
+  ],
+  "stats": [
+    {
+      "id": "total-badges",
+      "label": "Total Badges Awarded",
+      "value": "69"
+    },
+    {
+      "id": "active-badges",
+      "label": "Active Badges",
+      "value": "4"
+    },
+    {
+      "id": "certificates-issued",
+      "label": "Certificates Issued",
+      "value": "124"
+    }
+  ]
+}
