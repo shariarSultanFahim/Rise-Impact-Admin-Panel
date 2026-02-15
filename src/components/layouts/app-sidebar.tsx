@@ -183,18 +183,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <div className="flex items-center justify-start gap-4">
                 <Avatar size="lg">
                   <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div>
                   <h2 className="font-semibold">John Doe</h2>
-                  <h3 className="text-sm text-gray-500">john@riseimpact.com</h3>
+                  <h3 className="text-sm text-white/30">john@riseimpact.com</h3>
                 </div>
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
               <Button
                 variant="outline"
-                className="w-full border-secondary bg-transparent group-data-[collapsible=icon]:p-0"
+                className="w-full border-secondary bg-transparent group-data-[collapsible=icon]:p-0 hover:border-white/20 hover:bg-white/25 hover:text-primary-foreground hover:shadow-md hover:backdrop-blur-sm"
               >
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
