@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 
 import DescriptiveForm from "./forms/descriptive.form";
@@ -244,15 +245,19 @@ export default function QuizBuilderForm() {
                 name="settings.timeLimit"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Time Limit (minutes)</FormLabel>
+                    <div className="flex items-center justify-between gap-3">
+                      <FormLabel>Time Limit (minutes)</FormLabel>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {field.value} min
+                      </span>
+                    </div>
                     <FormControl>
-                      <Input
-                        className="bg-white"
-                        type="number"
+                      <Slider
                         min={1}
                         max={180}
-                        value={field.value}
-                        onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                        step={1}
+                        value={[field.value]}
+                        onValueChange={(value) => field.onChange(value[0] ?? 1)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -264,15 +269,19 @@ export default function QuizBuilderForm() {
                 name="settings.passingScore"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel>Passing Score (%)</FormLabel>
+                    <div className="flex items-center justify-between gap-3">
+                      <FormLabel>Passing Score (%)</FormLabel>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {field.value}%
+                      </span>
+                    </div>
                     <FormControl>
-                      <Input
-                        className="bg-white"
-                        type="number"
+                      <Slider
                         min={0}
                         max={100}
-                        value={field.value}
-                        onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                        step={1}
+                        value={[field.value]}
+                        onValueChange={(value) => field.onChange(value[0] ?? 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -284,7 +293,7 @@ export default function QuizBuilderForm() {
               control={form.control}
               name="settings.autoGrade"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-muted/70 px-4 py-3 md:col-span-2">
+                <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-muted/70 py-3 md:col-span-2">
                   <div>
                     <FormLabel>Auto-Grade Quiz</FormLabel>
                     <p className="text-sm text-muted-foreground">
