@@ -15,6 +15,12 @@ export type {
   GradebookStudent
 } from "./gradebook";
 export type {
+  NotificationAudience,
+  NotificationTemplate,
+  NotificationsData,
+  NotificationsHeading
+} from "./notifications";
+export type {
   OverviewActivity,
   OverviewChart,
   OverviewData,

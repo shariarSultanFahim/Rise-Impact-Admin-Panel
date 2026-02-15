@@ -1,0 +1,49 @@
+{
+  "heading": {
+    "title": "Send Notification",
+    "subtitle": "Communicate with students and share important updates"
+  },
+  "templates": [
+    {
+      "id": "welcome-message",
+      "title": "Welcome Message",
+      "description": "Greet new students",
+      "message": "Welcome to the course! We are excited to have you here. Start by reviewing the syllabus and introducing yourself in the discussion board."
+    },
+    {
+      "id": "quiz-reminder",
+      "title": "Quiz Reminder",
+      "description": "Remind about deadlines",
+      "message": "Reminder: Your upcoming quiz is due on Friday at 5 PM. Please review the materials and submit your responses on time."
+    },
+    {
+      "id": "motivational",
+      "title": "Motivational",
+      "description": "Encourage students",
+      "message": "You are making great progress! Keep up the momentum and stay curious. Reach out if you need any support."
+    },
+    {
+      "id": "announcement",
+      "title": "Announcement",
+      "description": "Share updates",
+      "message": "Quick update: The next live session has been moved to Tuesday at 3 PM. Check your calendar for the new invite."
+    }
+  ],
+  "audiences": [
+    {
+      "id": "all-students",
+      "title": "All Students",
+      "description": "Send to everyone"
+    },
+    {
+      "id": "specific-course",
+      "title": "Specific Course",
+      "description": "Target course participants"
+    },
+    {
+      "id": "individual-student",
+      "title": "Individual Student",
+      "description": "Send to one person"
+    }
+  ]
+}

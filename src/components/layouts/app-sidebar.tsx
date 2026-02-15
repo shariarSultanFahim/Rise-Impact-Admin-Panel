@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  Bell,
   BookOpen,
   ChartAreaIcon,
   ClipboardClock,
@@ -67,6 +68,11 @@ const data = {
           title: "Discussions",
           url: "/discussions",
           icon: MessageCircle
+        },
+        {
+          title: "Notifications",
+          url: "/notifications",
+          icon: Bell
         }
       ]
     }
