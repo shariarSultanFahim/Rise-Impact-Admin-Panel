@@ -33,9 +33,9 @@ export interface OverviewActivity {
   icon: OverviewIconKey;
 }
 
-export interface OverviewChart {
-  labels: string[];
-  values: number[];
+export interface OverviewCompletionTrends {
+  label: string;
+  value: number;
 }
 
 export interface OverviewSummary {
@@ -43,14 +43,14 @@ export interface OverviewSummary {
   title: string;
   value: string;
   label: string;
-    subtitle: string;
+  subtitle: string;
   icon: OverviewIconKey;
 }
 
 export interface OverviewData {
   heading: OverviewHeading;
   stats: OverviewStat[];
-  chart: OverviewChart;
+  completionTrends: OverviewCompletionTrends[];
   activities: OverviewActivity[];
   summaries: OverviewSummary[];
 }

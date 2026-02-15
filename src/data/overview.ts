@@ -39,10 +39,14 @@ const overviewData: OverviewData = {
       icon: "approvals"
     }
   ],
-  chart: {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    values: [62, 71, 66, 78, 82, 86]
-  },
+  completionTrends: [
+    { label: "Week 1", value: 42 },
+    { label: "Week 2", value: 51 },
+    { label: "Week 3", value: 58 },
+    { label: "Week 4", value: 64 },
+    { label: "Week 5", value: 72 },
+    { label: "Week 6", value: 80 }
+  ],
   activities: [
     {
       id: "activity-1",
@@ -54,21 +58,21 @@ const overviewData: OverviewData = {
     {
       id: "activity-2",
       title: "Quiz Submitted",
-      description: "Michael Chen submitted \"Life Skills Assessment Quiz\"",
+      description: 'Michael Chen submitted "Life Skills Assessment Quiz"',
       time: "12 minutes ago",
       icon: "activity-quiz"
     },
     {
       id: "activity-3",
       title: "New Feedback",
-      description: "Emma Davis left feedback on \"Communication Skills\"",
+      description: 'Emma Davis left feedback on "Communication Skills"',
       time: "1 hour ago",
       icon: "activity-feedback"
     },
     {
       id: "activity-4",
       title: "Badge Earned",
-      description: "Alex Martinez earned \"Master Communicator\" badge",
+      description: 'Alex Martinez earned "Master Communicator" badge',
       time: "2 hours ago",
       icon: "activity-badge"
     }
@@ -95,7 +99,7 @@ const overviewData: OverviewData = {
       title: "Badges Awarded",
       value: "124",
       label: "this month",
-        subtitle: "Keep motivating students!",
+      subtitle: "Keep motivating students!",
       icon: "badges"
     }
   ]

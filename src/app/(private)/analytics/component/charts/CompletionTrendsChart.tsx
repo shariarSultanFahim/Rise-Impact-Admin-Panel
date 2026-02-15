@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import type { AnalyticsLinePoint } from "@/types/analytics";
 
@@ -23,6 +23,7 @@ export default function CompletionTrendsChart({ data }: CompletionTrendsChartPro
     <CardContent>
       <ChartContainer config={chartConfig}>
         <LineChart data={data} margin={{ left: -5, right: 16 }}>
+          <CartesianGrid vertical={true} />
           <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={12} />
           <YAxis tickLine={false} axisLine={false} width={32} />
           <ChartTooltip cursor={false} content={<ChartTooltipContent config={chartConfig} />} />

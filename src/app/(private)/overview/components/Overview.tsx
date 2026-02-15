@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   BadgeCheck,
   BookOpen,
@@ -8,6 +9,8 @@ import {
   Users
 } from "lucide-react";
 
+import type { OverviewData, OverviewIconKey } from "@/types/overview";
+
 import {
   Card,
   CardAction,
@@ -16,8 +19,8 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import type { OverviewData, OverviewIconKey } from "@/types/overview";
-import type { LucideIcon } from "lucide-react";
+
+import CompletionTrendsChart from "../../analytics/component/charts/CompletionTrendsChart";
 
 const ICONS: Record<OverviewIconKey, LucideIcon> = {
   students: Users,
@@ -37,26 +40,7 @@ interface OverviewProps {
   data: OverviewData;
 }
 
-function buildChartPoints(values: number[], width: number, height: number) {
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const range = max - min || 1;
-  const lastIndex = Math.max(values.length - 1, 1);
-
-  return values
-    .map((value, index) => {
-      const x = (index / lastIndex) * width;
-      const y = height - ((value - min) / range) * height;
-      return `${x},${y}`;
-    })
-    .join(" ");
-}
-
 export default function Overview({ data }: OverviewProps) {
-  const chartWidth = 320;
-  const chartHeight = 140;
-  const chartPoints = buildChartPoints(data.chart.values, chartWidth, chartHeight);
-
   return (
     <div className="flex flex-col gap-6">
       <header className="space-y-1">
@@ -99,38 +83,7 @@ export default function Overview({ data }: OverviewProps) {
             <CardTitle className="text-base font-semibold">Course Completion Trends</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border bg-muted/20 p-4">
-              <svg
-                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                className="h-40 w-full"
-                aria-hidden
-              >
-                <polyline
-                  fill="none"
-                  stroke="#f59e0b"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                  points={chartPoints}
-                />
-                {data.chart.values.map((value, index) => {
-                  const lastIndex = Math.max(data.chart.values.length - 1, 1);
-                  const x = (index / lastIndex) * chartWidth;
-                  const max = Math.max(...data.chart.values);
-                  const min = Math.min(...data.chart.values);
-                  const range = max - min || 1;
-                  const y = chartHeight - ((value - min) / range) * chartHeight;
-
-                  return (
-                    <circle key={`${value}-${index}`} cx={x} cy={y} r="3" fill="#f59e0b" />
-                  );
-                })}
-              </svg>
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              {data.chart.labels.map((label) => (
-                <span key={label}>{label}</span>
-              ))}
-            </div>
+            <CompletionTrendsChart data={data.completionTrends} />
           </CardContent>
         </Card>
 
@@ -143,7 +96,7 @@ export default function Overview({ data }: OverviewProps) {
               const Icon = ICONS[activity.icon];
 
               return (
-                <div key={activity.id} className="flex gap-3">
+                <div key={activity.id} className="flex items-start gap-3">
                   <div className="mt-1 rounded-full bg-muted p-2 text-muted-foreground">
                     <Icon className="h-4 w-4" />
                   </div>
@@ -176,7 +129,10 @@ export default function Overview({ data }: OverviewProps) {
                 </CardAction>
               </CardHeader>
               <CardContent className="space-y-1">
-                <div className="text-2xl font-semibold text-foreground">{summary.value} <span className="text-xs text-muted-foreground">{summary.label}</span></div>
+                <div className="text-2xl font-semibold text-foreground">
+                  {summary.value}{" "}
+                  <span className="text-xs text-muted-foreground">{summary.label}</span>
+                </div>
                 <div className="text-xs text-muted-foreground">{summary.subtitle}</div>
               </CardContent>
             </Card>
