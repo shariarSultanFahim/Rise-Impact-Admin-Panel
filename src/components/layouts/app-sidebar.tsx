@@ -73,6 +73,11 @@ const data = {
           title: "Notifications",
           url: "/notifications",
           icon: Bell
+        },
+        {
+          title: "Analytics",
+          url: "/analytics",
+          icon: ChartAreaIcon
         }
       ]
     }

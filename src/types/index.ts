@@ -1,3 +1,14 @@
+export type {
+  AnalyticsBarPoint,
+  AnalyticsData,
+  AnalyticsFilters,
+  AnalyticsHeading,
+  AnalyticsHeatmapDay,
+  AnalyticsLinePoint,
+  AnalyticsStat,
+  AnalyticsTopCourse,
+  AnalyticsTrend
+} from "./analytics";
 export type { DataTableProps } from "./data-table";
 export type {
   DiscussionMessage,

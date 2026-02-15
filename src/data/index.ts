@@ -1,3 +1,4 @@
+export * from "./analytics";
 export * from "./discussions";
 export * from "./gradebook";
 export * from "./notifications";

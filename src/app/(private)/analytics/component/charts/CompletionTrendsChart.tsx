@@ -1,0 +1,40 @@
+"use client";
+
+import { Line, LineChart, XAxis, YAxis } from "recharts";
+
+import type { AnalyticsLinePoint } from "@/types/analytics";
+
+import { CardContent } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+
+const chartConfig = {
+  completion: {
+    label: "Completion",
+    color: "#f59e0b"
+  }
+};
+
+type CompletionTrendsChartProps = {
+  data: AnalyticsLinePoint[];
+};
+
+export default function CompletionTrendsChart({ data }: CompletionTrendsChartProps) {
+  return (
+    <CardContent>
+      <ChartContainer config={chartConfig}>
+        <LineChart data={data} margin={{ left: -5, right: 16 }}>
+          <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={12} />
+          <YAxis tickLine={false} axisLine={false} width={32} />
+          <ChartTooltip cursor={false} content={<ChartTooltipContent config={chartConfig} />} />
+          <Line
+            dataKey="value"
+            stroke="var(--color-completion)"
+            strokeWidth={2.5}
+            dot={{ r: 3 }}
+            activeDot={{ r: 5 }}
+          />
+        </LineChart>
+      </ChartContainer>
+    </CardContent>
+  );
+}
