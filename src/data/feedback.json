@@ -1,0 +1,90 @@
+{
+  "heading": {
+    "title": "Feedback & Evaluation",
+    "subtitle": "Review student submissions and provide personalized feedback"
+  },
+  "filters": {
+    "courses": [
+      "All Courses",
+      "Communication Skills",
+      "Time Management",
+      "Financial Literacy",
+      "Critical Thinking",
+      "Emotional Intelligence"
+    ]
+  },
+  "stats": [
+    {
+      "id": "total-submissions",
+      "title": "Total Submissions",
+      "value": "4"
+    },
+    {
+      "id": "needs-grading",
+      "title": "Needs Grading",
+      "value": "1"
+    },
+    {
+      "id": "avg-rating",
+      "title": "Avg Rating",
+      "value": "4.5"
+    },
+    {
+      "id": "avg-score",
+      "title": "Avg Score",
+      "value": "85%"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "submission-1",
+      "studentName": "Sarah Johnson",
+      "assignment": "Active Listening Quiz",
+      "course": "Communication Skills",
+      "score": 88,
+      "rating": 5,
+      "submittedAt": "2 hours ago",
+      "answer": "Active listening involves paying full attention, showing empathy, and providing feedback to the speaker. It builds trust and improves understanding.",
+      "instructorFeedback": "The quiz was very helpful and practical!"
+    },
+    {
+      "id": "submission-2",
+      "studentName": "Michael Chen",
+      "assignment": "Prioritization Assignment",
+      "course": "Time Management",
+      "score": 92,
+      "rating": null,
+      "submittedAt": "4 hours ago",
+      "answer": "I created a priority matrix and scheduled tasks based on urgency and impact. This helped me meet the deadline without stress.",
+      "instructorFeedback": ""
+    },
+    {
+      "id": "submission-3",
+      "studentName": "Emma Davis",
+      "assignment": "Budgeting Basics Quiz",
+      "course": "Financial Literacy",
+      "score": 78,
+      "rating": 4,
+      "submittedAt": "Yesterday",
+      "answer": "I tracked expenses, built a 50/30/20 budget, and set savings goals for the next quarter. The worksheet clarified my spending.",
+      "instructorFeedback": "Great use of the 50/30/20 framework. Consider adding a buffer for irregular expenses."
+    },
+    {
+      "id": "submission-4",
+      "studentName": "Alex Martinez",
+      "assignment": "Problem Solving Essay",
+      "course": "Critical Thinking",
+      "score": null,
+      "rating": null,
+      "submittedAt": "2 days ago",
+      "answer": "I analyzed the issue using the five whys, then proposed two solutions with pros and cons. The final choice focused on long-term impact.",
+      "instructorFeedback": ""
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "totalPages": 3,
+    "showing": 3,
+    "total": 8
+  }
+}

@@ -18,6 +18,14 @@ export type {
   DiscussionsPagination
 } from "./discussions";
 export type {
+  FeedbackData,
+  FeedbackFilters,
+  FeedbackHeading,
+  FeedbackPagination,
+  FeedbackStat,
+  FeedbackSubmission
+} from "./feedback";
+export type {
   GradebookData,
   GradebookFilters,
   GradebookHeading,

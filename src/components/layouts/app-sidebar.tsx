@@ -78,6 +78,11 @@ const data = {
           title: "Analytics",
           url: "/analytics",
           icon: ChartAreaIcon
+        },
+        {
+          title: "Feedback",
+          url: "/feedback",
+          icon: HeartHandshake
         }
       ]
     }
