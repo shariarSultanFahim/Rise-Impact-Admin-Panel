@@ -83,6 +83,11 @@ const data = {
           title: "Feedback",
           url: "/feedback",
           icon: HeartHandshake
+        },
+        {
+          title: "Terms & Conditions",
+          url: "/terms",
+          icon: UserRoundPen
         }
       ]
     }
