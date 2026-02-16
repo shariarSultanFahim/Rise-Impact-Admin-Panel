@@ -45,15 +45,33 @@ const defaultValues: CourseForm = {
   modules: []
 };
 
-export default function CreateCourse() {
+interface CreateCourseProps {
+  initialValues?: CourseForm;
+  initialThumbnailPreviewUrl?: string;
+  heading?: string;
+  subheading?: string;
+  submitLabel?: string;
+}
+
+export default function CreateCourse({
+  initialValues,
+  initialThumbnailPreviewUrl,
+  heading = "Course Management",
+  subheading = "Create New Course",
+  submitLabel = "Publish Course"
+}: CreateCourseProps) {
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
   const [activeLessonIndex, setActiveLessonIndex] = useState(0);
-  const [thumbnailName, setThumbnailName] = useState<string | null>(null);
-  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
+  const [thumbnailName, setThumbnailName] = useState<string | null>(
+    initialValues?.thumbnailUrl ?? null
+  );
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(
+    initialThumbnailPreviewUrl ?? null
+  );
 
   const form = useForm<CourseForm>({
     resolver: zodResolver(courseFormSchema),
-    defaultValues
+    defaultValues: initialValues ?? defaultValues
   });
 
   useEffect(() => {
@@ -150,6 +168,9 @@ export default function CreateCourse() {
   };
 
   const handleThumbnailChange = (file: File | null) => {
+    if (thumbnailPreviewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(thumbnailPreviewUrl);
+    }
     setThumbnailName(file?.name ?? null);
     form.setValue("thumbnailUrl", file?.name ?? "", { shouldValidate: true });
     setThumbnailPreviewUrl(file ? URL.createObjectURL(file) : null);
@@ -176,8 +197,9 @@ export default function CreateCourse() {
       return;
     }
 
-    console.log("Publish course", values);
-    toast.success("Course published successfully.");
+    const actionLabel = submitLabel === "Publish Course" ? "Publish" : "Update";
+    console.log(`${actionLabel} course`, values);
+    toast.success(`${submitLabel} successful.`);
   };
 
   return (
@@ -186,8 +208,8 @@ export default function CreateCourse() {
         <Card className="flex flex-col gap-4 border-none bg-transparent pt-0 shadow-none">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
-              <h1 className="text-xl font-semibold text-foreground">Course Management</h1>
-              <p className="text-sm text-muted-foreground">Create New Course</p>
+              <h1 className="text-xl font-semibold text-foreground">{heading}</h1>
+              <p className="text-sm text-muted-foreground">{subheading}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button type="button" variant="outline" className="gap-2">
@@ -200,7 +222,7 @@ export default function CreateCourse() {
               </Button>
               <Button type="submit" className="gap-2">
                 <Send className="h-4 w-4" />
-                Publish Course
+                {submitLabel}
               </Button>
             </div>
           </div>

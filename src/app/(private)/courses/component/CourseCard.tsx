@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import { BarChart3, BookOpen, Pencil, Trash2, Users } from "lucide-react";
 
@@ -19,8 +22,26 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
+  const router = useRouter();
+
+  const handleNavigate = () => {
+    router.push(`/courses/edit/${course.id}`);
+  };
+
   return (
-    <Card className="overflow-hidden border-muted/60 bg-card pt-0 shadow-sm">
+    <Card
+      className="cursor-pointer overflow-hidden border-muted/60 bg-card pt-0 shadow-sm"
+      role="button"
+      tabIndex={0}
+      aria-label={`Edit ${course.title}`}
+      onClick={handleNavigate}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleNavigate();
+        }
+      }}
+    >
       <figure className="relative h-40 w-full overflow-hidden">
         <Image src={course.imageUrl} alt={course.title} fill className="object-cover" />
         <figcaption className="sr-only">{course.title} course thumbnail</figcaption>
@@ -50,15 +71,26 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="flex-1 gap-2 border-primary">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="flex-1 gap-2 border-primary"
+            onClick={(event) => {
+              event.stopPropagation();
+              handleNavigate();
+            }}
+          >
             <Pencil className="h-4 w-4" />
             Edit
           </Button>
           <Button
+            type="button"
             variant="outline"
             className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
             size="icon-sm"
             aria-label="Delete course"
+            onClick={(event) => event.stopPropagation()}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

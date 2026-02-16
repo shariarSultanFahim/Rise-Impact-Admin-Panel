@@ -1,0 +1,58 @@
+[
+  {
+    "id": "course-1",
+    "title": "Effective Communication Skills",
+    "status": "Active",
+    "publishedAt": "2026-02-10",
+    "description": "Build confidence and clarity in everyday conversations with practical communication frameworks.",
+    "thumbnailUrl": "communication-thumbnail.jpg",
+    "thumbnailPreviewUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1200&auto=format&fit=crop",
+    "modules": [
+      {
+        "id": "module-1",
+        "title": "Introduction to Communication",
+        "lessons": [
+          {
+            "id": "lesson-1",
+            "title": "What is Effective Communication?",
+            "type": "video",
+            "description": "Learn the foundations of effective communication in personal and professional settings.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/lesson-1.mp4",
+            "objectives": ["Define effective communication", "Identify key communication elements"],
+            "prerequisites": [],
+            "attachments": ["lesson-outline.pdf"],
+            "isPublished": true
+          },
+          {
+            "id": "lesson-2",
+            "title": "Communication Barriers",
+            "type": "assignment",
+            "description": "Analyze common communication barriers and outline strategies to overcome them.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/assignments/lesson-2.zip",
+            "objectives": ["Recognize common barriers", "Plan mitigation steps"],
+            "prerequisites": ["lesson-1"],
+            "attachments": ["reflection-template.docx"],
+            "isPublished": false
+          }
+        ]
+      },
+      {
+        "id": "module-2",
+        "title": "Applied Practice",
+        "lessons": [
+          {
+            "id": "lesson-3",
+            "title": "Role-play Scenarios",
+            "type": "reading",
+            "description": "Review role-play scripts and best practices for delivering feedback.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/reading/lesson-3.pdf",
+            "objectives": ["Prepare for role-play", "Summarize feedback frameworks"],
+            "prerequisites": ["lesson-1"],
+            "attachments": [],
+            "isPublished": true
+          }
+        ]
+      }
+    ]
+  }
+]

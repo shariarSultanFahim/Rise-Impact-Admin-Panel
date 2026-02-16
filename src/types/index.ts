@@ -9,6 +9,7 @@ export type {
   AnalyticsTopCourse,
   AnalyticsTrend
 } from "./analytics";
+export type { CourseDetail } from "./course-detail";
 export type { CourseForm, LessonForm, LessonType, ModuleForm } from "./course-form";
 export type {
   CourseCardItem,
