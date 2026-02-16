@@ -45,22 +45,22 @@
     {
       "type": "cookie-policy",
       "title": "Cookie Policy",
-      "content": ""
+      "content": "<p>We use cookies to enhance your experience. You can manage your cookie preferences in your browser settings.</p>"
     },
     {
       "type": "disclaimer",
       "title": "Disclaimer",
-      "content": ""
+      "content": "<p>This platform is provided 'as is' without any warranties. We do not guarantee the accuracy or completeness of the information.</p>"
     },
     {
       "type": "return-refund-policy",
       "title": "Return/Refund Policy",
-      "content": ""
+      "content": "<p>Refunds are available within 30 days of purchase. Please contact support for assistance with returns and refunds.</p>"
     },
     {
       "type": "eula",
       "title": "End-User License Agreement (EULA)",
-      "content": ""
+      "content": "<p>By using this software, you agree to the terms of this EULA. You may not reverse engineer or redistribute the software without permission.</p>"
     }
   ]
 }
