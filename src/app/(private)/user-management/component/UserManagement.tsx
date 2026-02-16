@@ -1,6 +1,12 @@
+"use client";
+
+import { useState } from "react";
+
 import { Download, Eye, Pencil, Search, SlidersHorizontal, Trash2 } from "lucide-react";
 
 import type { UserManagementData } from "@/types/user-management";
+
+import { useToast } from "@/hooks/use-toast";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,8 +28,17 @@ import {
   TableRow
 } from "@/components/ui/table";
 
+import UserDialogs from "./UserDialogs";
+
 interface UserManagementProps {
   data: UserManagementData;
+}
+
+interface EditingUser {
+  id: string;
+  name: string;
+  role: string;
+  status: string;
 }
 
 function getInitials(name: string) {
@@ -59,6 +74,49 @@ function statusBadgeClass(status: string) {
 }
 
 export default function UserManagement({ data }: UserManagementProps) {
+  const { toast } = useToast();
+  const [editingUser, setEditingUser] = useState<EditingUser | null>(null);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [editedRole, setEditedRole] = useState<string>("");
+  const [editedStatus, setEditedStatus] = useState<string>("");
+
+  const handleEditOpen = (userId: string) => {
+    const user = data.users.find((u) => u.id === userId);
+    if (user) {
+      setEditingUser({
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        status: user.status
+      });
+      setEditedRole(user.role);
+      setEditedStatus(user.status);
+    }
+  };
+
+  const handleEditSave = () => {
+    if (editingUser) {
+      toast({
+        title: "Success",
+        description: `${editingUser.name} has been updated successfully. Role: ${editedRole}, Status: ${editedStatus}`,
+        variant: "default"
+      });
+      setEditingUser(null);
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    const user = data.users.find((u) => u.id === deleteUserId);
+    if (user) {
+      toast({
+        title: "Success",
+        description: `User ${user.name} has been deleted successfully.`,
+        variant: "default"
+      });
+    }
+    setDeleteUserId(null);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <header className="space-y-1">
@@ -191,10 +249,20 @@ export default function UserManagement({ data }: UserManagementProps) {
                           <Button variant="ghost" size="icon-sm" aria-label="View user">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon-sm" aria-label="Edit user">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label="Edit user"
+                            onClick={() => handleEditOpen(user.id)}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon-sm" aria-label="Delete user">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label="Delete user"
+                            onClick={() => setDeleteUserId(user.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -235,6 +303,21 @@ export default function UserManagement({ data }: UserManagementProps) {
           </Card>
         </CardContent>
       </Card>
+
+      <UserDialogs
+        editingUser={editingUser}
+        onEditClose={() => setEditingUser(null)}
+        editedRole={editedRole}
+        onRoleChange={setEditedRole}
+        editedStatus={editedStatus}
+        onStatusChange={setEditedStatus}
+        onEditSave={handleEditSave}
+        deleteUserId={deleteUserId}
+        onDeleteClose={() => setDeleteUserId(null)}
+        onDeleteConfirm={handleDeleteConfirm}
+        roles={data.filters.roles}
+        statuses={data.filters.status}
+      />
     </div>
   );
 }
