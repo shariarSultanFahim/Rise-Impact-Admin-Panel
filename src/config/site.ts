@@ -3,7 +3,7 @@ import { env } from "@/env";
 
 export const siteConfig: SiteConfig = {
   name: "Rise & Impact Admin Panel",
-  description: "Production-ready Next.js 16+ starter built with Tailwind CSS 4 and TypeScript.",
+  description: "Rise & Impact is an educational platform.",
   url: env.NEXT_PUBLIC_SITE_URL,
   author: "",
   locale: "en",

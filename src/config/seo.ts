@@ -9,6 +9,9 @@ export const seoConfig: Metadata = {
     template: `%s | ${siteConfig.name}`
   },
   description: siteConfig.description,
+  icons: {
+    icon: "/logo.png"
+  },
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
