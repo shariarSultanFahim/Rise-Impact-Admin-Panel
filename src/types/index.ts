@@ -9,13 +9,22 @@ export type {
   AnalyticsTopCourse,
   AnalyticsTrend
 } from "./analytics";
+export type { CourseForm, LessonForm, LessonType, ModuleForm } from "./course-form";
+export type {
+  CourseCardItem,
+  CoursesData,
+  CoursesFilters,
+  CoursesHeading,
+  CoursesPagination,
+  CoursesStat
+} from "./courses";
 export type { DataTableProps } from "./data-table";
 export type {
   DiscussionMessage,
+  DiscussionThreadItem,
   DiscussionsData,
   DiscussionsHeading,
-  DiscussionsPagination,
-  DiscussionThreadItem
+  DiscussionsPagination
 } from "./discussions";
 export type {
   CreateFeedbackInput,
@@ -41,9 +50,9 @@ export type {
 } from "./gradebook";
 export type {
   NotificationAudience,
+  NotificationTemplate,
   NotificationsData,
-  NotificationsHeading,
-  NotificationTemplate
+  NotificationsHeading
 } from "./notifications";
 export type {
   OverviewActivity,

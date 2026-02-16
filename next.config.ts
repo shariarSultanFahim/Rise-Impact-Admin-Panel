@@ -10,6 +10,9 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig: NextConfig = {
   reactCompiler: true,
   htmlLimitedBots: /.*/,
+  images: {
+    domains: ["images.unsplash.com"]
+  },
   turbopack: {
     rules: {
       "*.svg": {

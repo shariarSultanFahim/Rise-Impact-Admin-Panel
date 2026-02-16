@@ -1,0 +1,93 @@
+{
+  "heading": {
+    "title": "Course Management",
+    "subtitle": "Create, edit, and manage your life skills courses"
+  },
+  "filters": {
+    "status": ["All Courses", "Active", "In Active", "Upcoming"]
+  },
+  "stats": [
+    {
+      "id": "total",
+      "title": "Total Courses",
+      "value": "6"
+    },
+    {
+      "id": "students",
+      "title": "Active Students",
+      "value": "646"
+    },
+    {
+      "id": "completion",
+      "title": "Avg Completion",
+      "value": "77%"
+    },
+    {
+      "id": "modules",
+      "title": "Total Modules",
+      "value": "45"
+    }
+  ],
+  "courses": [
+    {
+      "id": "course-1",
+      "title": "Effective Communication Skills",
+      "status": "Active",
+      "imageUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1200&auto=format&fit=crop",
+      "modules": 8,
+      "students": 124,
+      "completionRate": 78
+    },
+    {
+      "id": "course-2",
+      "title": "Financial Literacy Fundamentals",
+      "status": "Active",
+      "imageUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=1200&auto=format&fit=crop",
+      "modules": 8,
+      "students": 124,
+      "completionRate": 78
+    },
+    {
+      "id": "course-3",
+      "title": "Critical Thinking & Problem Solving",
+      "status": "Active",
+      "imageUrl": "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?q=80&w=1200&auto=format&fit=crop",
+      "modules": 8,
+      "students": 124,
+      "completionRate": 78
+    },
+    {
+      "id": "course-4",
+      "title": "Emotional Intelligence Development",
+      "status": "In Active",
+      "imageUrl": "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?q=80&w=1200&auto=format&fit=crop",
+      "modules": 8,
+      "students": 124,
+      "completionRate": 78
+    },
+    {
+      "id": "course-5",
+      "title": "Career Planning & Goal Setting",
+      "status": "Upcoming",
+      "imageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop",
+      "modules": 8,
+      "students": 124,
+      "completionRate": 78
+    },
+    {
+      "id": "course-6",
+      "title": "Time Management Mastery",
+      "status": "Active",
+      "imageUrl": "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1200&auto=format&fit=crop",
+      "modules": 8,
+      "students": 124,
+      "completionRate": 78
+    }
+  ],
+  "pagination": {
+    "showing": 8,
+    "total": 8,
+    "totalPages": 3,
+    "page": 1
+  }
+}

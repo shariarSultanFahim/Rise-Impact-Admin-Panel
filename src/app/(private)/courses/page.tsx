@@ -1,8 +1,22 @@
+import { Suspense } from "react";
+
+import { getCoursesData } from "@/data/courses";
+
+import Courses from "./component/Courses";
+import CoursesSkeleton from "./component/CoursesSkeleton";
+
+async function CoursesContent() {
+  const data = await getCoursesData();
+
+  return <Courses data={data} />;
+}
+
 export default function CoursesPage() {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">Courses</h1>
-      <p className="mt-2 text-muted-foreground">Manage your courses here.</p>
-    </div>
+    <section className="flex flex-col gap-6">
+      <Suspense fallback={<CoursesSkeleton />}>
+        <CoursesContent />
+      </Suspense>
+    </section>
   );
 }
