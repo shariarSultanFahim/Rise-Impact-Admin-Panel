@@ -17,6 +17,7 @@ import {
   Medal,
   MessageCircle,
   Notebook,
+  Scale,
   UserRoundPen
 } from "lucide-react";
 
@@ -93,9 +94,9 @@ const data = {
           icon: Medal
         },
         {
-          title: "Terms & Conditions",
+          title: "Legal",
           url: "/terms",
-          icon: UserRoundPen
+          icon: Scale
         }
       ]
     }

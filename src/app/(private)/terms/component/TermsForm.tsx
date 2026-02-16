@@ -83,6 +83,7 @@ export default function TermsForm() {
             </Button>
           </form>
         </Form>
+        =
       </CardContent>
     </Card>
   );

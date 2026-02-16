@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
+
 import TermsForm from "./component/TermsForm";
 import TermsSkeleton from "./component/TermsSkeleton";
 
@@ -10,6 +12,8 @@ export default function TermsAndConditionsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Terms & Condition</h1>
         <p className="text-sm text-muted-foreground">Manage Terms and condition</p>
       </div>
+
+      <SimpleEditor />
 
       <Suspense fallback={<TermsSkeleton />}>
         <TermsForm />
