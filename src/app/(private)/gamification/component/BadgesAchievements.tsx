@@ -55,7 +55,7 @@ export default function BadgesAchievements({ badges }: BadgesAchievementsProps) 
           const Icon = badgeIcons[badge.icon];
 
           return (
-            <Card key={badge.id} className="border-muted/60 bg-muted/10">
+            <Card key={badge.id} className="border-muted/60 bg-white">
               <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                   <Icon className="h-5 w-5 text-muted-foreground" />

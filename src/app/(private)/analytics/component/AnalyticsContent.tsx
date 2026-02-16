@@ -77,7 +77,7 @@ export default function AnalyticsContent({ data }: AnalyticsContentProps) {
       </div>
 
       <Card>
-        <CardContent className="flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-end">
+        <CardContent className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <Form {...form}>
             <form className="flex flex-1 flex-col gap-3 sm:flex-row">
               <FormField

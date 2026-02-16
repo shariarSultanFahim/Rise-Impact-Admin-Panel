@@ -45,6 +45,7 @@ export interface FeedbackStat {
 export interface FeedbackSubmission {
   id: string;
   studentName: string;
+  email: string;
   assignment: string;
   course: string;
   score: number | null;

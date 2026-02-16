@@ -40,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 const data = {
   info: {
     title: "Rise & Impact",
-    subtitle: "Instructor Portal"
+    subtitle: "Admin Portal"
   },
   navMain: [
     {

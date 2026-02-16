@@ -50,15 +50,19 @@ function scoreClass(score: number) {
 export default function GradebookTable({ students, filters, pagination }: GradebookTableProps) {
   return (
     <Card className="shadow-sm">
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="space-y-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-xl">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search students..." className="pl-9" aria-label="Search students" />
+            <Input
+              placeholder="Search students..."
+              className="bg-white pl-9"
+              aria-label="Search students"
+            />
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Select>
-              <SelectTrigger className="w-fit gap-2">
+              <SelectTrigger className="w-fit gap-2 bg-white">
                 <span className="inline-flex items-center justify-center rounded-md border border-muted px-2 py-1 text-xs text-muted-foreground">
                   <SlidersHorizontal className="h-3 w-3" />
                 </span>

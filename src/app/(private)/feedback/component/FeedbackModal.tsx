@@ -103,9 +103,7 @@ export default function FeedbackModal({ open, onOpenChange, submission }: Feedba
             </Avatar>
             <div>
               <p className="text-sm font-semibold text-foreground">{submission.studentName}</p>
-              <p className="text-xs text-muted-foreground">
-                {submission.course} • {submission.assignment}
-              </p>
+              <p className="text-xs text-muted-foreground">{submission.email}</p>
             </div>
           </div>
           <div className="text-xs text-muted-foreground">Submitted {submission.submittedAt}</div>

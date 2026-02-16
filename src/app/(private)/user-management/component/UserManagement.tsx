@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Download, Eye, Pencil, Search, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Download, Eye, Pencil, Search, Trash2 } from "lucide-react";
 
 import type { UserManagementData } from "@/types/user-management";
 
@@ -46,20 +46,6 @@ function getInitials(name: string) {
   const first = parts[0]?.[0] ?? "";
   const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
   return (first + last).toUpperCase();
-}
-
-function roleBadgeClass(role: string) {
-  const normalized = role.toLowerCase();
-  if (normalized === "student") {
-    return "bg-emerald-50 text-emerald-700";
-  }
-  if (normalized === "instructor") {
-    return "bg-orange-50 text-orange-700";
-  }
-  if (normalized === "admin") {
-    return "bg-rose-50 text-rose-700";
-  }
-  return "bg-muted text-muted-foreground";
 }
 
 function statusBadgeClass(status: string) {
@@ -131,27 +117,11 @@ export default function UserManagement({ data }: UserManagementProps) {
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by name or email..."
-                className="pl-9"
+                className="bg-white pl-9"
                 aria-label="Search users"
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Select>
-                <SelectTrigger className="w-fit gap-2">
-                  <span className="inline-flex items-center justify-center rounded-md border border-muted px-2 py-1 text-xs text-muted-foreground">
-                    <SlidersHorizontal className="h-3 w-3" />
-                  </span>
-                  <SelectValue placeholder={data.filters.roles[0]} />
-                </SelectTrigger>
-                <SelectContent>
-                  {data.filters.roles.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               <Select>
                 <SelectTrigger className="w-fit">
                   <SelectValue placeholder={data.filters.status[0]} />
@@ -193,7 +163,6 @@ export default function UserManagement({ data }: UserManagementProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Courses</TableHead>
                     <TableHead>Last Active</TableHead>
@@ -220,15 +189,7 @@ export default function UserManagement({ data }: UserManagementProps) {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${roleBadgeClass(
-                            user.role
-                          )}`}
-                        >
-                          {user.role}
-                        </span>
-                      </TableCell>
+
                       <TableCell>
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadgeClass(

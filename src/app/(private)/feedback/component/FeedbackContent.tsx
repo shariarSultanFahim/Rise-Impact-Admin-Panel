@@ -58,14 +58,14 @@ export default function FeedbackContent({ data }: FeedbackContentProps) {
       </div>
 
       <Card>
-        <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col gap-4 py-0 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by student or assignment..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="pl-9"
+              className="bg-white pl-9"
             />
           </div>
           <Select value={selectedCourse} onValueChange={setSelectedCourse}>
