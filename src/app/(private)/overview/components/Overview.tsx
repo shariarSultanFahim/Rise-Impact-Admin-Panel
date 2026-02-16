@@ -96,7 +96,7 @@ export default function Overview({ data }: OverviewProps) {
               const Icon = ICONS[activity.icon];
 
               return (
-                <div key={activity.id} className="flex items-start gap-3">
+                <div key={activity.id} className="flex items-start gap-3 rounded-md bg-white p-2">
                   <div className="mt-1 rounded-full bg-muted p-2 text-muted-foreground">
                     <Icon className="h-4 w-4" />
                   </div>

@@ -20,6 +20,7 @@ import {
   UserRoundPen
 } from "lucide-react";
 
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -130,11 +131,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground">
                   <Image src="/logo.png" alt="Logo" width={32} height={32} />
                 </div>
                 <div className="grid flex-1 text-sm leading-tight">
-                  <span className="truncate text-sm font-bold">{data.info.title}</span>
+                  <span className="truncate text-lg font-bold">{data.info.title}</span>
                   <span className="truncate text-xs font-semibold text-sidebar-foreground/60">
                     {data.info.subtitle}
                   </span>
@@ -144,7 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-
+      <Separator />
       <SidebarContent>
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
@@ -170,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
-
+      <Separator />
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="space-y-5">
