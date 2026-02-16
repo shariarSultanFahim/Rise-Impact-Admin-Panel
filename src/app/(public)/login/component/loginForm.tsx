@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui";
 import { Button } from "@/components/ui/button";
@@ -34,11 +35,15 @@ export default function LoginForm() {
 
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
+    toast.loading("Logging in...");
     try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       // TODO: Implement login API call
       console.log("Login attempt:", data);
     } finally {
       setIsLoading(false);
+      toast.success("Login successful!");
+      window.location.href = "/";
     }
   }
 

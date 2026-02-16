@@ -34,7 +34,6 @@ import {
   SidebarRail
 } from "@/components/ui/sidebar";
 
-import { Button } from "../ui";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const data = {
@@ -192,13 +191,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button
-                variant="outline"
-                className="w-full border-secondary bg-transparent group-data-[collapsible=icon]:p-0 hover:border-white/20 hover:bg-white/25 hover:text-primary-foreground hover:shadow-md hover:backdrop-blur-sm"
+              <Link
+                href="/login"
+                className="h-10 w-full border border-secondary bg-transparent group-data-[collapsible=icon]:p-0 hover:border-white/20 hover:bg-white/25 hover:text-primary-foreground hover:shadow-md hover:backdrop-blur-sm"
               >
-                <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
-                <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
-              </Button>
+                <button className="flex w-full items-center justify-center gap-2 border-none">
+                  <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
+                  <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
+                </button>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

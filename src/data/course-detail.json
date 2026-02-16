@@ -54,5 +54,333 @@
         ]
       }
     ]
+  },
+  {
+    "id": "course-2",
+    "title": "Financial Literacy Fundamentals",
+    "status": "Active",
+    "publishedAt": "2026-01-15",
+    "description": "Master the essentials of personal finance, budgeting, and smart money management for long-term wealth.",
+    "thumbnailUrl": "finance-thumbnail.jpg",
+    "thumbnailPreviewUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=1200&auto=format&fit=crop",
+    "modules": [
+      {
+        "id": "module-1-c2",
+        "title": "Money Basics",
+        "lessons": [
+          {
+            "id": "lesson-1-c2",
+            "title": "Understanding Money and Banking",
+            "type": "video",
+            "description": "Explore the basics of financial systems, banking products, and how to choose the right accounts.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/finance-lesson-1.mp4",
+            "objectives": [
+              "Understand banking systems",
+              "Compare account types",
+              "Identify banking fees"
+            ],
+            "prerequisites": [],
+            "attachments": ["banking-guide.pdf"],
+            "isPublished": true
+          },
+          {
+            "id": "lesson-2-c2",
+            "title": "Creating Your Budget",
+            "type": "assignment",
+            "description": "Build a personalized budget using the 50/30/20 rule and track your spending habits.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/assignments/budget-template.zip",
+            "objectives": [
+              "Create a realistic budget",
+              "Track expenses",
+              "Identify spending patterns"
+            ],
+            "prerequisites": ["lesson-1-c2"],
+            "attachments": ["budget-worksheet.xlsx"],
+            "isPublished": true
+          }
+        ]
+      },
+      {
+        "id": "module-2-c2",
+        "title": "Investing and Savings",
+        "lessons": [
+          {
+            "id": "lesson-3-c2",
+            "title": "Investment Fundamentals",
+            "type": "reading",
+            "description": "Learn about stocks, bonds, mutual funds, and building a diversified investment portfolio.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/reading/investing-guide.pdf",
+            "objectives": [
+              "Understand investment types",
+              "Learn diversification",
+              "Assess risk tolerance"
+            ],
+            "prerequisites": ["lesson-1-c2"],
+            "attachments": [],
+            "isPublished": true
+          },
+          {
+            "id": "lesson-4-c2",
+            "title": "Debt Management",
+            "type": "video",
+            "description": "Strategies for managing credit cards, student loans, and eliminating debt effectively.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/debt-management.mp4",
+            "objectives": [
+              "Manage debt strategically",
+              "Improve credit score",
+              "Plan debt repayment"
+            ],
+            "prerequisites": [],
+            "attachments": ["debt-payoff-plan.docx"],
+            "isPublished": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course-3",
+    "title": "Critical Thinking & Problem Solving",
+    "status": "Active",
+    "publishedAt": "2026-01-20",
+    "description": "Develop analytical skills to solve complex problems and make better decisions in any situation.",
+    "thumbnailUrl": "critical-thinking-thumbnail.jpg",
+    "thumbnailPreviewUrl": "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?q=80&w=1200&auto=format&fit=crop",
+    "modules": [
+      {
+        "id": "module-1-c3",
+        "title": "Foundations of Critical Thinking",
+        "lessons": [
+          {
+            "id": "lesson-1-c3",
+            "title": "What is Critical Thinking?",
+            "type": "video",
+            "description": "Explore the principles of critical thinking and how to evaluate information objectively.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/critical-thinking-intro.mp4",
+            "objectives": [
+              "Define critical thinking",
+              "Identify logical fallacies",
+              "Evaluate sources"
+            ],
+            "prerequisites": [],
+            "attachments": ["critical-thinking-checklist.pdf"],
+            "isPublished": true
+          }
+        ]
+      },
+      {
+        "id": "module-2-c3",
+        "title": "Problem-Solving Methods",
+        "lessons": [
+          {
+            "id": "lesson-2-c3",
+            "title": "Problem-Solving Frameworks",
+            "type": "reading",
+            "description": "Learn proven methodologies like design thinking, root cause analysis, and brainstorming techniques.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/reading/problem-solving-methods.pdf",
+            "objectives": [
+              "Apply design thinking",
+              "Analyze root causes",
+              "Generate creative solutions"
+            ],
+            "prerequisites": ["lesson-1-c3"],
+            "attachments": [],
+            "isPublished": true
+          },
+          {
+            "id": "lesson-3-c3",
+            "title": "Real-World Problem Solving",
+            "type": "assignment",
+            "description": "Apply problem-solving frameworks to real case studies and present your solutions.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/assignments/case-studies.zip",
+            "objectives": [
+              "Solve complex problems",
+              "Present solutions",
+              "Defend analytical reasoning"
+            ],
+            "prerequisites": ["lesson-2-c3"],
+            "attachments": ["case-study-template.docx"],
+            "isPublished": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course-4",
+    "title": "Emotional Intelligence Development",
+    "status": "In Active",
+    "publishedAt": "2026-02-01",
+    "description": "Enhance self-awareness and interpersonal skills through emotional intelligence training.",
+    "thumbnailUrl": "emotional-intelligence-thumbnail.jpg",
+    "thumbnailPreviewUrl": "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?q=80&w=1200&auto=format&fit=crop",
+    "modules": [
+      {
+        "id": "module-1-c4",
+        "title": "Self-Awareness",
+        "lessons": [
+          {
+            "id": "lesson-1-c4",
+            "title": "Understanding Your Emotions",
+            "type": "video",
+            "description": "Develop awareness of your emotional patterns, triggers, and how they influence your behavior.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/emotional-awareness.mp4",
+            "objectives": [
+              "Identify emotional triggers",
+              "Recognize emotion patterns",
+              "Understand emotional responses"
+            ],
+            "prerequisites": [],
+            "attachments": ["emotion-tracking-log.pdf"],
+            "isPublished": false
+          }
+        ]
+      },
+      {
+        "id": "module-2-c4",
+        "title": "Relationship Management",
+        "lessons": [
+          {
+            "id": "lesson-2-c4",
+            "title": "Empathy and Social Skills",
+            "type": "assignment",
+            "description": "Practice active listening, empathy, and conflict resolution through interactive exercises.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/assignments/empathy-exercises.zip",
+            "objectives": ["Practice active listening", "Develop empathy", "Resolve conflicts"],
+            "prerequisites": ["lesson-1-c4"],
+            "attachments": ["listening-guide.docx"],
+            "isPublished": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course-5",
+    "title": "Career Planning & Goal Setting",
+    "status": "Upcoming",
+    "publishedAt": "2026-03-01",
+    "description": "Define your career path, set achievable goals, and develop an action plan for professional success.",
+    "thumbnailUrl": "career-planning-thumbnail.jpg",
+    "thumbnailPreviewUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop",
+    "modules": [
+      {
+        "id": "module-1-c5",
+        "title": "Career Exploration",
+        "lessons": [
+          {
+            "id": "lesson-1-c5",
+            "title": "Career Assessment and Self-Discovery",
+            "type": "reading",
+            "description": "Assess your skills, interests, and values to identify career paths that align with your goals.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/reading/career-assessment.pdf",
+            "objectives": [
+              "Assess personal skills",
+              "Identify career interests",
+              "Explore career options"
+            ],
+            "prerequisites": [],
+            "attachments": [],
+            "isPublished": false
+          }
+        ]
+      },
+      {
+        "id": "module-2-c5",
+        "title": "Goal Setting and Planning",
+        "lessons": [
+          {
+            "id": "lesson-2-c5",
+            "title": "Setting SMART Goals",
+            "type": "video",
+            "description": "Learn how to set specific, measurable, achievable, relevant, and time-bound career goals.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/smart-goals.mp4",
+            "objectives": ["Set SMART goals", "Create action plans", "Monitor progress"],
+            "prerequisites": ["lesson-1-c5"],
+            "attachments": ["goal-planning-template.xlsx"],
+            "isPublished": false
+          },
+          {
+            "id": "lesson-3-c5",
+            "title": "Career Development Plan",
+            "type": "assignment",
+            "description": "Create a comprehensive 5-year career development plan with milestones and strategies.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/assignments/career-plan.zip",
+            "objectives": [
+              "Create development plan",
+              "Set career milestones",
+              "Plan skill development"
+            ],
+            "prerequisites": ["lesson-2-c5"],
+            "attachments": ["career-plan-template.docx"],
+            "isPublished": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course-6",
+    "title": "Time Management Mastery",
+    "status": "Active",
+    "publishedAt": "2026-01-25",
+    "description": "Take control of your time, increase productivity, and achieve better work-life balance.",
+    "thumbnailUrl": "time-management-thumbnail.jpg",
+    "thumbnailPreviewUrl": "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1200&auto=format&fit=crop",
+    "modules": [
+      {
+        "id": "module-1-c6",
+        "title": "Time Fundamentals",
+        "lessons": [
+          {
+            "id": "lesson-1-c6",
+            "title": "Understanding Time and Priorities",
+            "type": "video",
+            "description": "Learn how to assess your time usage and identify what truly matters to you.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/videos/time-priorities.mp4",
+            "objectives": ["Assess time usage", "Identify priorities", "Eliminate time wasters"],
+            "prerequisites": [],
+            "attachments": ["time-audit-sheet.pdf"],
+            "isPublished": true
+          }
+        ]
+      },
+      {
+        "id": "module-2-c6",
+        "title": "Time Management Techniques",
+        "lessons": [
+          {
+            "id": "lesson-2-c6",
+            "title": "Popular Time Management Methods",
+            "type": "reading",
+            "description": "Explore techniques like Pomodoro, Eisenhower Matrix, and Getting Things Done.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/reading/time-methods.pdf",
+            "objectives": [
+              "Learn Pomodoro technique",
+              "Apply Eisenhower Matrix",
+              "Implement GTD system"
+            ],
+            "prerequisites": ["lesson-1-c6"],
+            "attachments": [],
+            "isPublished": true
+          },
+          {
+            "id": "lesson-3-c6",
+            "title": "Building Your System",
+            "type": "assignment",
+            "description": "Design a personalized time management system and commit to a 30-day challenge.",
+            "resourceLink": "https://cdn.riseimpact.io/course-resources/assignments/time-system.zip",
+            "objectives": [
+              "Design personal system",
+              "Track daily activities",
+              "Measure improvements"
+            ],
+            "prerequisites": ["lesson-2-c6"],
+            "attachments": ["30-day-challenge.docx"],
+            "isPublished": true
+          }
+        ]
+      }
+    ]
   }
 ]

@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,11 +33,16 @@ export default function PasswordResetForm() {
 
   async function onSubmit(data: PasswordResetFormData) {
     setIsLoading(true);
+    toast.loading("Updating password...");
     try {
+      //delay of 1 sec
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       // TODO: Implement password reset API call
       console.log("Password reset attempt:", data);
     } finally {
       setIsLoading(false);
+      toast.success("Password updated successfully!");
+      window.location.href = "/";
     }
   }
 
