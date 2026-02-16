@@ -11,14 +11,13 @@ export default function TermsSkeleton() {
 
       <Card>
         <CardContent className="space-y-5">
-          <Skeleton className="h-6 w-64" />
           <div className="space-y-3">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-9 w-full" />
           </div>
           <div className="space-y-3">
             <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-60 w-full" />
           </div>
           <Skeleton className="h-9 w-40" />
         </CardContent>
