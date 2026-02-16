@@ -5,7 +5,6 @@ export interface QuizSettings {
   courseId: string;
   timeLimit: number;
   passingScore: number;
-  autoGrade: boolean;
 }
 
 export interface BaseQuestion {

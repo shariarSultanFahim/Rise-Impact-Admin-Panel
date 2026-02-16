@@ -24,6 +24,5 @@ export const QUIZ_DEFAULT_SETTINGS: QuizSettings = {
   title: "",
   courseId: "",
   timeLimit: 30,
-  passingScore: 70,
-  autoGrade: true
+  passingScore: 70
 };

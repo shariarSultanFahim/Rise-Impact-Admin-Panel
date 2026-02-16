@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { BookOpen, Eye, Save, Send } from "lucide-react";
+import { BookOpen, Save, Send } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -216,10 +216,7 @@ export default function CreateCourse({
                 <Save className="h-4 w-4" />
                 Save Draft
               </Button>
-              <Button type="button" variant="outline" className="gap-2">
-                <Eye className="h-4 w-4" />
-                Preview as Student
-              </Button>
+
               <Button type="submit" className="gap-2">
                 <Send className="h-4 w-4" />
                 {submitLabel}

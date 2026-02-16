@@ -10,8 +10,7 @@ const quizSettingsSchema = z.object({
   title: z.string().min(3, "Quiz title is required"),
   courseId: z.string().min(1, "Select a course"),
   timeLimit: z.number().min(1, "Time limit must be at least 1 minute").max(180),
-  passingScore: z.number().min(0, "Passing score must be between 0 and 100").max(100),
-  autoGrade: z.boolean()
+  passingScore: z.number().min(0, "Passing score must be between 0 and 100").max(100)
 });
 
 const questionSchema = z.discriminatedUnion("type", [
