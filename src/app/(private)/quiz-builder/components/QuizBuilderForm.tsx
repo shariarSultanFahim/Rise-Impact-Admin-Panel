@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { ChevronDown, PlusIcon } from "lucide-react";
+import { ChevronDown, PlusIcon, Save } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
@@ -192,7 +192,7 @@ export default function QuizBuilderForm() {
             </p>
           </div>
           <Button type="submit" className="gap-2 bg-secondary">
-            Save Quiz
+            <Save className="h-4 w-4" />
           </Button>
         </div>
 

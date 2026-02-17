@@ -87,13 +87,13 @@ export default function TermsForm({ data }: TermsFormProps) {
                   <FormControl>
                     <DropdownMenu open={typeDropdownOpen} onOpenChange={setTypeDropdownOpen}>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full gap-2 border-primary bg-white">
+                        <Button variant="outline" className="w-auto gap-2 border-primary bg-white">
                           {data.options.find((opt) => opt.id === field.value)?.label ||
                             "Select document type"}
                           <ChevronDown className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-full">
+                      <DropdownMenuContent align="center" className="w-full">
                         <DropdownMenuRadioGroup
                           value={field.value}
                           onValueChange={(value) => {

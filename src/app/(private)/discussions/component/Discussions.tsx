@@ -28,7 +28,7 @@ export default function Discussions({ data }: DiscussionsProps) {
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search discussions..."
-              className="pl-9"
+              className="bg-white pl-9"
               aria-label="Search discussions"
             />
           </div>
