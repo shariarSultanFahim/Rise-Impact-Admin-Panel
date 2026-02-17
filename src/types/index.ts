@@ -22,10 +22,10 @@ export type {
 export type { DataTableProps } from "./data-table";
 export type {
   DiscussionMessage,
-  DiscussionThreadItem,
   DiscussionsData,
   DiscussionsHeading,
-  DiscussionsPagination
+  DiscussionsPagination,
+  DiscussionThreadItem
 } from "./discussions";
 export type {
   CreateFeedbackInput,
@@ -51,9 +51,9 @@ export type {
 } from "./gradebook";
 export type {
   NotificationAudience,
-  NotificationTemplate,
   NotificationsData,
-  NotificationsHeading
+  NotificationsHeading,
+  NotificationTemplate
 } from "./notifications";
 export type {
   OverviewActivity,
@@ -64,6 +64,13 @@ export type {
   OverviewSummary
 } from "./overview";
 export type { User } from "./user";
+export type {
+  UserDetailsActivity,
+  UserDetailsCourse,
+  UserDetailsData,
+  UserDetailsInfo,
+  UserDetailsStat
+} from "./user-details";
 export type {
   UserManagementData,
   UserManagementFilters,

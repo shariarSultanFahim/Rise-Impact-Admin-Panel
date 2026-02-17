@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import { ChevronDown, Download, Eye, Filter, Pencil, Search, Trash2 } from "lucide-react";
 
@@ -216,9 +217,11 @@ export default function UserManagement({ data }: UserManagementProps) {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2 text-muted-foreground">
-                          <Button variant="ghost" size="icon-sm" aria-label="View user">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <Link href={`/user-management/${user.id}`}>
+                            <Button variant="ghost" size="icon-sm" aria-label="View user">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Button
                             variant="ghost"
                             size="icon-sm"

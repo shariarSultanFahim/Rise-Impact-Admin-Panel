@@ -1,0 +1,286 @@
+{
+  "user-1": {
+    "info": {
+      "id": "user-1",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@email.com",
+      "role": "Student",
+      "status": "Active",
+      "phone": "+1 (555) 123-4567",
+      "joinDate": "January 15, 2023",
+      "lastActive": "2 hours ago",
+      "bio": "Passionate learner focused on web development and data science."
+    },
+    "stats": [
+      {
+        "id": "avg-grade",
+        "title": "Average Grade",
+        "value": "A- (88%)"
+      },
+      {
+        "id": "completion-rate",
+        "title": "Completion Rate",
+        "value": "92%"
+      },
+      {
+        "id": "courses-enrolled",
+        "title": "Courses Enrolled",
+        "value": "4"
+      },
+      {
+        "id": "courses-completed",
+        "title": "Courses Completed",
+        "value": "3"
+      }
+    ],
+    "courses": [
+      {
+        "id": "course-1",
+        "title": "React Fundamentals",
+        "status": "Completed",
+        "progress": 100,
+        "enrolledDate": "March 10, 2023",
+        "grade": 95
+      },
+      {
+        "id": "course-2",
+        "title": "JavaScript Advanced Concepts",
+        "status": "Completed",
+        "progress": 100,
+        "enrolledDate": "May 20, 2023",
+        "grade": 88
+      },
+      {
+        "id": "course-3",
+        "title": "Data Science with Python",
+        "status": "In Progress",
+        "progress": 65,
+        "enrolledDate": "September 05, 2023",
+        "grade": 82
+      },
+      {
+        "id": "course-4",
+        "title": "Web Design Principles",
+        "status": "In Progress",
+        "progress": 40,
+        "enrolledDate": "November 12, 2023"
+      }
+    ],
+    "recentActivity": [
+      {
+        "id": "activity-1",
+        "activity": "Completed Quiz 3 on Data Science with Python",
+        "timestamp": "2 hours ago"
+      },
+      {
+        "id": "activity-2",
+        "activity": "Submitted Assignment - Web Design Project",
+        "timestamp": "1 day ago"
+      },
+      {
+        "id": "activity-3",
+        "activity": "Watched Video Lecture - Python Lists and Tuples",
+        "timestamp": "2 days ago"
+      },
+      {
+        "id": "activity-4",
+        "activity": "Enrolled in Web Design Principles Course",
+        "timestamp": "5 days ago"
+      },
+      {
+        "id": "activity-5",
+        "activity": "Completed JavaScript Advanced Concepts Course",
+        "timestamp": "1 month ago"
+      }
+    ]
+  },
+  "user-2": {
+    "info": {
+      "id": "user-2",
+      "name": "Michael Chen",
+      "email": "michael.c@email.com",
+      "role": "Student",
+      "status": "Active",
+      "phone": "+1 (555) 234-5678",
+      "joinDate": "February 20, 2023",
+      "lastActive": "1 day ago",
+      "bio": "Focused on cloud computing and DevOps technologies."
+    },
+    "stats": [
+      {
+        "id": "avg-grade",
+        "title": "Average Grade",
+        "value": "A (91%)"
+      },
+      {
+        "id": "completion-rate",
+        "title": "Completion Rate",
+        "value": "85%"
+      },
+      {
+        "id": "courses-enrolled",
+        "title": "Courses Enrolled",
+        "value": "6"
+      },
+      {
+        "id": "courses-completed",
+        "title": "Courses Completed",
+        "value": "4"
+      }
+    ],
+    "courses": [
+      {
+        "id": "course-1",
+        "title": "Docker & Kubernetes",
+        "status": "Completed",
+        "progress": 100,
+        "enrolledDate": "April 05, 2023",
+        "grade": 92
+      },
+      {
+        "id": "course-3",
+        "title": "Data Science with Python",
+        "status": "Completed",
+        "progress": 100,
+        "enrolledDate": "June 15, 2023",
+        "grade": 89
+      },
+      {
+        "id": "course-5",
+        "title": "AWS Cloud Fundamentals",
+        "status": "In Progress",
+        "progress": 55,
+        "enrolledDate": "October 01, 2023",
+        "grade": 90
+      },
+      {
+        "id": "course-6",
+        "title": "Kubernetes Advanced",
+        "status": "In Progress",
+        "progress": 30,
+        "enrolledDate": "December 10, 2023"
+      },
+      {
+        "id": "course-2",
+        "title": "JavaScript Advanced Concepts",
+        "status": "Not Started",
+        "progress": 0,
+        "enrolledDate": "January 20, 2024"
+      },
+      {
+        "id": "course-4",
+        "title": "Web Design Principles",
+        "status": "Not Started",
+        "progress": 0,
+        "enrolledDate": "January 25, 2024"
+      }
+    ],
+    "recentActivity": [
+      {
+        "id": "activity-1",
+        "activity": "Started Kubernetes Advanced Course",
+        "timestamp": "3 days ago"
+      },
+      {
+        "id": "activity-2",
+        "activity": "Completed Lab - AWS EC2 Instances",
+        "timestamp": "1 week ago"
+      },
+      {
+        "id": "activity-3",
+        "activity": "Achieved Certificate - Docker & Kubernetes",
+        "timestamp": "2 weeks ago"
+      },
+      {
+        "id": "activity-4",
+        "activity": "Completed Data Science with Python Course",
+        "timestamp": "1 month ago"
+      },
+      {
+        "id": "activity-5",
+        "activity": "Enrolled in AWS Cloud Fundamentals",
+        "timestamp": "2 months ago"
+      }
+    ]
+  },
+  "user-5": {
+    "info": {
+      "id": "user-5",
+      "name": "Priya Patel",
+      "email": "priya.p@email.com",
+      "role": "Student",
+      "status": "Inactive",
+      "phone": "+1 (555) 345-6789",
+      "joinDate": "August 10, 2022",
+      "lastActive": "2 weeks ago",
+      "bio": "Student taking a break; interested in software engineering."
+    },
+    "stats": [
+      {
+        "id": "avg-grade",
+        "title": "Average Grade",
+        "value": "B+ (87%)"
+      },
+      {
+        "id": "completion-rate",
+        "title": "Completion Rate",
+        "value": "75%"
+      },
+      {
+        "id": "courses-enrolled",
+        "title": "Courses Enrolled",
+        "value": "2"
+      },
+      {
+        "id": "courses-completed",
+        "title": "Courses Completed",
+        "value": "1"
+      }
+    ],
+    "courses": [
+      {
+        "id": "course-1",
+        "title": "React Fundamentals",
+        "status": "Completed",
+        "progress": 100,
+        "enrolledDate": "September 12, 2022",
+        "grade": 85
+      },
+      {
+        "id": "course-2",
+        "title": "JavaScript Advanced Concepts",
+        "status": "In Progress",
+        "progress": 50,
+        "enrolledDate": "February 01, 2023",
+        "grade": 87
+      }
+    ],
+    "recentActivity": [
+      {
+        "id": "activity-1",
+        "activity": "Viewed Course - React Fundamentals",
+        "timestamp": "2 weeks ago"
+      },
+      {
+        "id": "activity-2",
+        "activity": "Last checked progress on JavaScript Course",
+        "timestamp": "2 weeks ago"
+      },
+      {
+        "id": "activity-3",
+        "activity": "Completed React Fundamentals Course",
+        "timestamp": "3 months ago"
+      },
+      {
+        "id": "activity-4",
+        "activity": "Enrolled in JavaScript Advanced Concepts",
+        "timestamp": "5 months ago"
+      },
+      {
+        "id": "activity-5",
+        "activity": "Account Created",
+        "timestamp": "1 year ago"
+      }
+    ]
+  }
+}

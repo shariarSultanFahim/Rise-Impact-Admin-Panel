@@ -6,4 +6,5 @@ export * from "./gamification";
 export * from "./gradebook";
 export * from "./notifications";
 export * from "./stack";
+export * from "./user-details";
 export * from "./user-management";
