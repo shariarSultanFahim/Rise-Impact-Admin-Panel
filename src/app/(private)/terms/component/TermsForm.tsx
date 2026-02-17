@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { ChevronDown } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,6 +13,13 @@ import Editor from "@/components/text-editor/Editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
   Form,
   FormControl,
   FormField,
@@ -19,13 +27,6 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 
 import { termsSchema, type TermsFormData } from "../schema/terms.schema";
 
@@ -36,6 +37,7 @@ type TermsFormProps = {
 const DEFAULT_TYPE = "terms-and-conditions";
 
 export default function TermsForm({ data }: TermsFormProps) {
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const documentsByType = useMemo(() => {
     return data.documents.reduce<Record<string, string>>((accumulator, document) => {
       accumulator[document.type] = document.content;
@@ -83,21 +85,35 @@ export default function TermsForm({ data }: TermsFormProps) {
                 <FormItem>
                   <FormLabel>Document Type</FormLabel>
                   <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full bg-white py-6">
-                        <SelectValue placeholder="Select document type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {data.options.map((option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            <div className="flex flex-col items-start">
-                              <p className="text-sm font-medium">{option.label}</p>
-                              <p className="text-xs text-muted-foreground"> {option.description}</p>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <DropdownMenu open={typeDropdownOpen} onOpenChange={setTypeDropdownOpen}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full gap-2 border-primary bg-white">
+                          {data.options.find((opt) => opt.id === field.value)?.label ||
+                            "Select document type"}
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-full">
+                        <DropdownMenuRadioGroup
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setTypeDropdownOpen(false);
+                          }}
+                        >
+                          {data.options.map((option) => (
+                            <DropdownMenuRadioItem key={option.id} value={option.id}>
+                              <div className="flex flex-col items-start">
+                                <p className="text-sm font-medium">{option.label}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {option.description}
+                                </p>
+                              </div>
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

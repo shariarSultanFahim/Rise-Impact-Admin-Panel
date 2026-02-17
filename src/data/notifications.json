@@ -39,11 +39,6 @@
       "id": "specific-course",
       "title": "Specific Course",
       "description": "Target course participants"
-    },
-    {
-      "id": "individual-student",
-      "title": "Individual Student",
-      "description": "Send to one person"
     }
   ]
 }

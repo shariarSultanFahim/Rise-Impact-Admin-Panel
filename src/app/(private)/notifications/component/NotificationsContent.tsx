@@ -50,7 +50,6 @@ export default function NotificationsContent({
 }: NotificationsContentProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [courseSearch, setCourseSearch] = useState("");
-  const [studentSearch, setStudentSearch] = useState("");
 
   const form = useForm<NotificationFormData>({
     resolver: zodResolver(notificationSchema),
@@ -58,8 +57,7 @@ export default function NotificationsContent({
       title: "",
       message: "",
       audience: data.audiences[0]?.id ?? "",
-      courseId: "",
-      studentId: ""
+      courseId: ""
     }
   });
 
@@ -79,41 +77,26 @@ export default function NotificationsContent({
     control: form.control,
     name: "courseId"
   });
-  const studentIdValue = useWatch({
-    control: form.control,
-    name: "studentId"
-  });
 
   const messageCount = messageValue?.length ?? 0;
   const selectedAudience = data.audiences.find((audience) => audience.id === audienceValue);
   const selectedCourse = courses.find((course) => course.id === courseIdValue);
-  const selectedStudent = students.find((student) => student.id === studentIdValue);
   const previewTitle = titleValue?.trim() || "Your Title Here";
   const previewMessage = messageValue?.trim() || "Your message will appear here...";
   const previewAudience = selectedAudience?.title ?? "Select an audience";
   const previewAudienceDetail =
     audienceValue === "specific-course" && selectedCourse
       ? `Specific Course: ${selectedCourse.title}`
-      : audienceValue === "individual-student" && selectedStudent
-        ? `Individual Student: ${selectedStudent.name}`
-        : previewAudience;
+      : previewAudience;
 
   const courseSearchValue = courseSearch.trim().toLowerCase();
-  const studentSearchValue = studentSearch.trim().toLowerCase();
   const filteredCourses = courses.filter((course) =>
     course.title.toLowerCase().includes(courseSearchValue)
-  );
-  const filteredStudents = students.filter((student) =>
-    student.name.toLowerCase().includes(studentSearchValue)
   );
 
   useEffect(() => {
     if (audienceValue !== "specific-course" && form.getValues("courseId")) {
       form.setValue("courseId", "", { shouldValidate: true });
-    }
-
-    if (audienceValue !== "individual-student" && form.getValues("studentId")) {
-      form.setValue("studentId", "", { shouldValidate: true });
     }
   }, [audienceValue, form]);
 
@@ -208,14 +191,14 @@ export default function NotificationsContent({
                             return (
                               <label
                                 key={audience.id}
-                                className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-white p-4 transition-colors hover:border-primary/50"
+                                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-white p-4 transition-colors hover:border-primary/50"
                               >
                                 <Checkbox
                                   checked={isSelected}
                                   onCheckedChange={() => field.onChange(audience.id)}
                                 />
-                                <div className="flex flex-1 items-start gap-3">
-                                  <Icon className="mt-0.5 size-4 text-muted-foreground" />
+                                <div className="flex flex-1 items-center gap-3">
+                                  <Icon className="size-6 text-muted-foreground" />
                                   <div className="space-y-1">
                                     <p className="text-sm font-medium">{audience.title}</p>
                                     <p className="text-xs text-muted-foreground">
@@ -277,58 +260,6 @@ export default function NotificationsContent({
                           </div>
                           <FormDescription className="text-xs">
                             Select the course to notify.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  ) : null}
-
-                  {audienceValue === "individual-student" ? (
-                    <FormField
-                      control={form.control}
-                      name="studentId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Student</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Search students"
-                              value={studentSearch}
-                              onChange={(event) => setStudentSearch(event.target.value)}
-                              className="bg-white"
-                            />
-                          </FormControl>
-                          <div className="mt-3 max-h-56 overflow-y-auto rounded-lg border border-border bg-white">
-                            {filteredStudents.length === 0 ? (
-                              <p className="px-4 py-3 text-sm text-muted-foreground">
-                                No students found.
-                              </p>
-                            ) : (
-                              filteredStudents.map((student) => (
-                                <button
-                                  key={student.id}
-                                  type="button"
-                                  onClick={() => {
-                                    field.onChange(student.id);
-                                    setStudentSearch("");
-                                  }}
-                                  className={`flex w-full items-start justify-between px-4 py-3 text-left text-sm transition-colors hover:bg-muted/60 ${
-                                    field.value === student.id
-                                      ? "bg-muted/70 font-medium"
-                                      : "text-foreground"
-                                  }`}
-                                >
-                                  <span>{student.name}</span>
-                                  {field.value === student.id ? (
-                                    <span className="text-xs text-muted-foreground">Selected</span>
-                                  ) : null}
-                                </button>
-                              ))
-                            )}
-                          </div>
-                          <FormDescription className="text-xs">
-                            Select the student to notify.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

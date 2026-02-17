@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { PlusIcon } from "lucide-react";
+import { ChevronDown, PlusIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,6 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
   Form,
   FormControl,
   FormField,
@@ -25,13 +32,6 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 
 import DescriptiveForm from "./forms/descriptive.form";
 import MultipleChoiceForm from "./forms/multiple.choice.form";
@@ -76,6 +76,8 @@ function QuestionCard({ index, form, onTypeChange }: QuestionCardProps) {
     control: form.control,
     name: `questions.${index}.type`
   });
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const typeLabel = QUESTION_TYPE_OPTIONS.find((opt) => opt.value === questionType)?.label;
 
   return (
     <Card className="border-muted/60">
@@ -85,26 +87,32 @@ function QuestionCard({ index, form, onTypeChange }: QuestionCardProps) {
           control={form.control}
           name={`questions.${index}.type`}
           render={({ field }) => (
-            <FormItem className="w-48">
+            <FormItem>
               <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    onTypeChange(index, value as QuestionType);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {QUESTION_TYPE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu open={typeDropdownOpen} onOpenChange={setTypeDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-48 gap-2 border-primary">
+                      {typeLabel || "Select option"}
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuRadioGroup
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        onTypeChange(index, value as QuestionType);
+                        setTypeDropdownOpen(false);
+                      }}
+                    >
+                      {QUESTION_TYPE_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option.value} value={option.value}>
+                          {option.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </FormControl>
             </FormItem>
           )}
@@ -122,6 +130,9 @@ function QuestionCard({ index, form, onTypeChange }: QuestionCardProps) {
 }
 
 export default function QuizBuilderForm() {
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+
   const form = useForm<QuizFormData>({
     resolver: zodResolver(quizSchema as never),
     defaultValues: {
@@ -212,25 +223,35 @@ export default function QuizBuilderForm() {
                 control={form.control}
                 name="settings.courseId"
                 render={({ field }) => (
-                  <FormItem className="">
+                  <FormItem>
                     <FormLabel>Course</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a course" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COURSE_OPTIONS.map((course) => (
-                            <SelectItem
-                              key={course.value}
-                              className="bg-white"
-                              value={course.value}
-                            >
-                              {course.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <DropdownMenu open={courseDropdownOpen} onOpenChange={setCourseDropdownOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-full gap-2 border-primary">
+                            {selectedCourseId
+                              ? COURSE_OPTIONS.find((c) => c.value === selectedCourseId)?.label
+                              : "Select a course"}
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-fit">
+                          <DropdownMenuRadioGroup
+                            value={selectedCourseId}
+                            onValueChange={(value) => {
+                              setSelectedCourseId(value);
+                              field.onChange(value);
+                              setCourseDropdownOpen(false);
+                            }}
+                          >
+                            {COURSE_OPTIONS.map((course) => (
+                              <DropdownMenuRadioItem key={course.value} value={course.value}>
+                                {course.label}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

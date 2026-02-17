@@ -21,7 +21,6 @@ import {
   UserRoundPen
 } from "lucide-react";
 
-import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -146,7 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <Separator />
+      {/* <Separator /> */}
       <SidebarContent>
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
@@ -172,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <Separator />
+      {/* <Separator /> */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="space-y-5">

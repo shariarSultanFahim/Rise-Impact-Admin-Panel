@@ -19,37 +19,30 @@ import {
 interface EditingUser {
   id: string;
   name: string;
-  role: string;
   status: string;
 }
 
 interface UserDialogsProps {
   editingUser: EditingUser | null;
   onEditClose: () => void;
-  editedRole: string;
-  onRoleChange: (role: string) => void;
   editedStatus: string;
   onStatusChange: (status: string) => void;
   onEditSave: () => void;
   deleteUserId: string | null;
   onDeleteClose: () => void;
   onDeleteConfirm: () => void;
-  roles: string[];
   statuses: string[];
 }
 
 export default function UserDialogs({
   editingUser,
   onEditClose,
-  editedRole,
-  onRoleChange,
   editedStatus,
   onStatusChange,
   onEditSave,
   deleteUserId,
   onDeleteClose,
   onDeleteConfirm,
-  roles,
   statuses
 }: UserDialogsProps) {
   return (
@@ -68,23 +61,6 @@ export default function UserDialogs({
                 <Input value={editingUser.name} disabled className="cursor-not-allowed bg-muted" />
               </div>
               <div className="flex items-center justify-between gap-2">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="role-select" className="text-sm font-medium">
-                    Role
-                  </Label>
-                  <Select value={editedRole} onValueChange={onRoleChange}>
-                    <SelectTrigger className="w-full" id="role-select">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="status-select" className="text-sm font-medium">
                     Status
@@ -118,7 +94,7 @@ export default function UserDialogs({
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteUserId} onOpenChange={() => onDeleteClose()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="bg-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>

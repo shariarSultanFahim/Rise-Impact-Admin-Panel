@@ -1,21 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
-import { Filter, Plus, Search } from "lucide-react";
+import { ChevronDown, Filter, Plus, Search } from "lucide-react";
 
 import type { CoursesData } from "@/types/courses";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 
 import CourseCard from "./CourseCard";
 
@@ -24,6 +25,8 @@ interface CoursesProps {
 }
 
 export default function Courses({ data }: CoursesProps) {
+  const [statusFilter, setStatusFilter] = useState<string>(data.filters.status[0] ?? "");
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -40,27 +43,36 @@ export default function Courses({ data }: CoursesProps) {
       </header>
 
       <Card className="shadow-sm">
-        <CardContent className="flex flex-col gap-4 pt-6 lg:flex-row lg:items-center lg:justify-between">
+        <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search courses..." className="pl-9" aria-label="Search courses" />
+            <Input
+              placeholder="Search courses..."
+              className="bg-white pl-9"
+              aria-label="Search courses"
+            />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Select defaultValue={data.filters.status[0]}>
-              <SelectTrigger className="w-fit gap-2">
-                <span className="inline-flex items-center justify-center rounded-md border border-muted px-2 py-1 text-xs text-muted-foreground">
-                  <Filter className="h-3 w-3" />
-                </span>
-                <SelectValue placeholder={data.filters.status[0]} />
-              </SelectTrigger>
-              <SelectContent>
-                {data.filters.status.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 border-primary">
+                  <span className="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-muted-foreground">
+                    <Filter className="h-3 w-3" />
+                  </span>
+                  {statusFilter || data.filters.status[0]}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                  {data.filters.status.map((status) => (
+                    <DropdownMenuRadioItem key={status} value={status}>
+                      {status}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button variant="outline" className="gap-2">
               <Filter className="h-4 w-4" />

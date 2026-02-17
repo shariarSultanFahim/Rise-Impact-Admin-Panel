@@ -11,8 +11,7 @@ export const notificationSchema = zod
       .min(10, "Message must be at least 10 characters")
       .max(500, "Message must be 500 characters or less"),
     audience: zod.string().min(1, "Select an audience"),
-    courseId: zod.string().optional(),
-    studentId: zod.string().optional()
+    courseId: zod.string().optional()
   })
   .superRefine((values, context) => {
     if (values.audience === "specific-course" && !values.courseId) {
@@ -20,14 +19,6 @@ export const notificationSchema = zod
         code: zod.ZodIssueCode.custom,
         path: ["courseId"],
         message: "Select a course"
-      });
-    }
-
-    if (values.audience === "individual-student" && !values.studentId) {
-      context.addIssue({
-        code: zod.ZodIssueCode.custom,
-        path: ["studentId"],
-        message: "Select a student"
       });
     }
   });

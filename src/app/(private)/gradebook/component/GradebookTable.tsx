@@ -1,20 +1,22 @@
 "use client";
 
-import { Download, Search, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+
+import { ChevronDown, Download, Search, SlidersHorizontal } from "lucide-react";
 
 import type { GradebookFilters, GradebookPagination, GradebookStudent } from "@/types/gradebook";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -48,6 +50,8 @@ function scoreClass(score: number) {
 }
 
 export default function GradebookTable({ students, filters, pagination }: GradebookTableProps) {
+  const [courseFilter, setCourseFilter] = useState<string>(filters.courses[0] ?? "");
+
   return (
     <Card className="shadow-sm">
       <CardContent className="space-y-4">
@@ -61,21 +65,26 @@ export default function GradebookTable({ students, filters, pagination }: Gradeb
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Select>
-              <SelectTrigger className="w-fit gap-2 bg-white">
-                <span className="inline-flex items-center justify-center rounded-md border border-muted px-2 py-1 text-xs text-muted-foreground">
-                  <SlidersHorizontal className="h-3 w-3" />
-                </span>
-                <SelectValue placeholder={filters.courses[0]} />
-              </SelectTrigger>
-              <SelectContent>
-                {filters.courses.map((course) => (
-                  <SelectItem key={course} value={course}>
-                    {course}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 border-primary bg-white">
+                  <span className="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-muted-foreground">
+                    <SlidersHorizontal className="h-3 w-3" />
+                  </span>
+                  {courseFilter || filters.courses[0]}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuRadioGroup value={courseFilter} onValueChange={setCourseFilter}>
+                  {filters.courses.map((course) => (
+                    <DropdownMenuRadioItem key={course} value={course}>
+                      {course}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="default" className="gap-2">
               <Download className="h-4 w-4" />
               Export Report
@@ -84,9 +93,6 @@ export default function GradebookTable({ students, filters, pagination }: Gradeb
         </div>
 
         <Card className="border shadow-none">
-          <CardHeader className="px-4 py-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Students</CardTitle>
-          </CardHeader>
           <CardContent className="px-4">
             <Table>
               <TableHeader>

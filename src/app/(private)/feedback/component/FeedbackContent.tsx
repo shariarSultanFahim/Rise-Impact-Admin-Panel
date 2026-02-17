@@ -2,20 +2,20 @@
 
 import { useMemo, useState } from "react";
 
-import { SearchIcon } from "lucide-react";
+import { ChevronDown, Filter, SearchIcon } from "lucide-react";
 
 import { FeedbackData, FeedbackSubmission } from "@/types/feedback";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 
 import FeedbackModal from "./FeedbackModal";
 import FeedbackTable from "./FeedbackTable";
@@ -29,6 +29,7 @@ export default function FeedbackContent({ data }: FeedbackContentProps) {
   const [selectedCourse, setSelectedCourse] = useState(data.filters.courses[0] ?? "");
   const [selectedSubmission, setSelectedSubmission] = useState<FeedbackSubmission | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
 
   const filteredSubmissions = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -68,18 +69,32 @@ export default function FeedbackContent({ data }: FeedbackContentProps) {
               className="bg-white pl-9"
             />
           </div>
-          <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="All Courses" />
-            </SelectTrigger>
-            <SelectContent>
-              {data.filters.courses.map((course) => (
-                <SelectItem key={course} value={course}>
-                  {course}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DropdownMenu open={courseDropdownOpen} onOpenChange={setCourseDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full gap-2 border-primary sm:w-44">
+                <span className="inline-flex items-center justify-center rounded-md text-xs text-muted-foreground">
+                  <Filter className="h-3 w-3" />
+                </span>
+                {selectedCourse || "All Courses"}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuRadioGroup
+                value={selectedCourse}
+                onValueChange={(value) => {
+                  setSelectedCourse(value);
+                  setCourseDropdownOpen(false);
+                }}
+              >
+                {data.filters.courses.map((course) => (
+                  <DropdownMenuRadioItem key={course} value={course}>
+                    {course}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardContent>
       </Card>
 

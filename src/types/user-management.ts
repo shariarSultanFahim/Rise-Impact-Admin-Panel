@@ -4,7 +4,6 @@ export interface UserManagementHeading {
 }
 
 export interface UserManagementFilters {
-  roles: string[];
   status: string[];
 }
 

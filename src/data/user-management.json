@@ -4,7 +4,6 @@
     "subtitle": "Manage users, roles, and access permissions"
   },
   "filters": {
-    "roles": ["All Roles", "Student", "Instructor", "Admin"],
     "status": ["All Status", "Active", "Inactive"]
   },
   "stats": [

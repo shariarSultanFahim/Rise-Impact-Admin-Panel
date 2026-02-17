@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Download, Eye, Pencil, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Download, Eye, Filter, Pencil, Search, Trash2 } from "lucide-react";
 
 import type { UserManagementData } from "@/types/user-management";
 
@@ -11,14 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -65,6 +65,7 @@ export default function UserManagement({ data }: UserManagementProps) {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [editedRole, setEditedRole] = useState<string>("");
   const [editedStatus, setEditedStatus] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>(data.filters.status[0] ?? "");
 
   const handleEditOpen = (userId: string) => {
     const user = data.users.find((u) => u.id === userId);
@@ -122,18 +123,26 @@ export default function UserManagement({ data }: UserManagementProps) {
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Select>
-                <SelectTrigger className="w-fit">
-                  <SelectValue placeholder={data.filters.status[0]} />
-                </SelectTrigger>
-                <SelectContent>
-                  {data.filters.status.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2 border-primary bg-white">
+                    <span className="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-muted-foreground">
+                      <Filter className="h-3 w-3" />
+                    </span>
+                    {statusFilter || "Filter status"}
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                    {data.filters.status.map((status) => (
+                      <DropdownMenuRadioItem key={status} value={status}>
+                        {status}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button variant="default" className="gap-2">
                 <Download className="h-4 w-4" />
@@ -222,6 +231,7 @@ export default function UserManagement({ data }: UserManagementProps) {
                             variant="ghost"
                             size="icon-sm"
                             aria-label="Delete user"
+                            className="text-red-500 hover:border-red-500 hover:bg-red-500 hover:text-white"
                             onClick={() => setDeleteUserId(user.id)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -268,15 +278,12 @@ export default function UserManagement({ data }: UserManagementProps) {
       <UserDialogs
         editingUser={editingUser}
         onEditClose={() => setEditingUser(null)}
-        editedRole={editedRole}
-        onRoleChange={setEditedRole}
         editedStatus={editedStatus}
         onStatusChange={setEditedStatus}
         onEditSave={handleEditSave}
         deleteUserId={deleteUserId}
         onDeleteClose={() => setDeleteUserId(null)}
         onDeleteConfirm={handleDeleteConfirm}
-        roles={data.filters.roles}
         statuses={data.filters.status}
       />
     </div>
