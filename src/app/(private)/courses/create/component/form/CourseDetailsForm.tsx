@@ -27,20 +27,22 @@ interface CourseDetailsFormProps {
   onThumbnailChange: (file: File | null) => void;
   thumbnailName: string | null;
   thumbnailPreviewUrl: string | null;
+  subheading: string;
 }
 
 export default function CourseDetailsForm({
   form,
   onThumbnailChange,
   thumbnailName,
-  thumbnailPreviewUrl
+  thumbnailPreviewUrl,
+  subheading
 }: CourseDetailsFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Create New Course</CardTitle>
+        <CardTitle className="text-base font-semibold">{subheading}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-4">
