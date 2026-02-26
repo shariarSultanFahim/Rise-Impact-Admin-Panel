@@ -96,6 +96,11 @@ const data = {
           title: "Legal",
           url: "/terms",
           icon: Scale
+        },
+        {
+          title: "Profile",
+          url: "/profile",
+          icon: UserRoundPen
         }
       ]
     }
@@ -188,8 +193,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="font-semibold">John Doe</h2>
-                  <h3 className="text-sm text-white/30">john@riseimpact.com</h3>
+                  <h2 className="font-semibold">Rodney Bremby</h2>
+                  <h3 className="text-sm text-white/30">rodney@riseimpact.com</h3>
                 </div>
               </div>
             </div>
