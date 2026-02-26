@@ -183,8 +183,8 @@ export default function QuizBuilderForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="relative flex h-screen flex-col">
+        <Card className="flex flex-row items-start justify-between bg-white p-6 shadow-none">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Quiz Builder</h1>
             <p className="text-sm text-muted-foreground">
@@ -193,160 +193,166 @@ export default function QuizBuilderForm() {
           </div>
           <Button type="submit" className="gap-2 bg-secondary">
             <Save className="h-4 w-4" />
+            <p>Save</p>
           </Button>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Quiz Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-6">
-            <div className="flex flex-col gap-6 md:flex-row">
-              <FormField
-                control={form.control}
-                name="settings.title"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>Quiz Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="bg-white"
-                        placeholder="e.g., Communication Skills Assessment"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="settings.courseId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Course</FormLabel>
-                    <FormControl>
-                      <DropdownMenu open={courseDropdownOpen} onOpenChange={setCourseDropdownOpen}>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="w-full gap-2 border-primary">
-                            {selectedCourseId
-                              ? COURSE_OPTIONS.find((c) => c.value === selectedCourseId)?.label
-                              : "Select a course"}
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-fit">
-                          <DropdownMenuRadioGroup
-                            value={selectedCourseId}
-                            onValueChange={(value) => {
-                              setSelectedCourseId(value);
-                              field.onChange(value);
-                              setCourseDropdownOpen(false);
-                            }}
-                          >
-                            {COURSE_OPTIONS.map((course) => (
-                              <DropdownMenuRadioItem key={course.value} value={course.value}>
-                                {course.label}
-                              </DropdownMenuRadioItem>
-                            ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex flex-col gap-6 md:flex-row">
-              <FormField
-                control={form.control}
-                name="settings.timeLimit"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Time Limit (minutes)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={180}
-                        step={1}
-                        className="bg-white"
-                        value={field.value}
-                        onChange={(event) => field.onChange(Number(event.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="settings.passingScore"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Passing Score (%)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        step={1}
-                        className="bg-white"
-                        value={field.value}
-                        onChange={(event) => field.onChange(Number(event.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          {fields.map((field, index) => (
-            <QuestionCard
-              key={field.id}
-              index={index}
-              form={form}
-              onTypeChange={handleTypeChange}
-            />
-          ))}
-        </div>
+        <div className="flex-1 space-y-6 overflow-y-auto py-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Quiz Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6 md:flex-row">
+                <FormField
+                  control={form.control}
+                  name="settings.title"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Quiz Title</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-white"
+                          placeholder="e.g., Communication Skills Assessment"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="settings.courseId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Course</FormLabel>
+                      <FormControl>
+                        <DropdownMenu
+                          open={courseDropdownOpen}
+                          onOpenChange={setCourseDropdownOpen}
+                        >
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="w-full gap-2 border-primary">
+                              {selectedCourseId
+                                ? COURSE_OPTIONS.find((c) => c.value === selectedCourseId)?.label
+                                : "Select a course"}
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-fit">
+                            <DropdownMenuRadioGroup
+                              value={selectedCourseId}
+                              onValueChange={(value) => {
+                                setSelectedCourseId(value);
+                                field.onChange(value);
+                                setCourseDropdownOpen(false);
+                              }}
+                            >
+                              {COURSE_OPTIONS.map((course) => (
+                                <DropdownMenuRadioItem key={course.value} value={course.value}>
+                                  {course.label}
+                                </DropdownMenuRadioItem>
+                              ))}
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-col gap-6 md:flex-row">
+                <FormField
+                  control={form.control}
+                  name="settings.timeLimit"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Time Limit (minutes)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={180}
+                          step={1}
+                          className="bg-white"
+                          value={field.value}
+                          onChange={(event) => field.onChange(Number(event.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="settings.passingScore"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Passing Score (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={1}
+                          className="bg-white"
+                          value={field.value}
+                          onChange={(event) => field.onChange(Number(event.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="flex flex-wrap items-center gap-3 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 gap-2 border-primary"
-              onClick={() => handleAddQuestion("multiple-choice")}
-            >
-              <PlusIcon className="size-4" />
-              Add Multiple Choice
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 gap-2 border-primary"
-              onClick={() => handleAddQuestion("true-false")}
-            >
-              <PlusIcon className="size-4" />
-              Add True/False
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 gap-2 border-primary"
-              onClick={() => handleAddQuestion("descriptive")}
-            >
-              <PlusIcon className="size-4" />
-              Add Descriptive
-            </Button>
-          </CardContent>
-        </Card>
+          <div className="space-y-6">
+            {fields.map((field, index) => (
+              <QuestionCard
+                key={field.id}
+                index={index}
+                form={form}
+                onTypeChange={handleTypeChange}
+              />
+            ))}
+          </div>
+
+          <Card>
+            <CardContent className="flex flex-wrap items-center gap-3 pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 gap-2 border-primary"
+                onClick={() => handleAddQuestion("multiple-choice")}
+              >
+                <PlusIcon className="size-4" />
+                Add Multiple Choice
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 gap-2 border-primary"
+                onClick={() => handleAddQuestion("true-false")}
+              >
+                <PlusIcon className="size-4" />
+                Add True/False
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 gap-2 border-primary"
+                onClick={() => handleAddQuestion("descriptive")}
+              >
+                <PlusIcon className="size-4" />
+                Add Descriptive
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </form>
     </Form>
   );

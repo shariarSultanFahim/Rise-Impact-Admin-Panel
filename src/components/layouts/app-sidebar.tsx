@@ -159,7 +159,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       isActive={rootPath === item.url.split("/")[1]}
                       className="data-[active=true]:bg-white/25 data-[active=true]:text-primary-foreground data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm"
                     >
-                      <Link href={item.url}>
+                      <Link href={item.url} className="py-5">
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
