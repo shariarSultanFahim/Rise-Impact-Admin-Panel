@@ -12,7 +12,7 @@ import CoursesSkeleton from "./component/CoursesSkeleton";
 export default function CoursesPage() {
   const [params, setParams] = useState<CourseManageQueryParams>({
     page: 1,
-    limit: 10
+    limit: 6
   });
 
   const { data, isPending } = useGetCourses(params);
