@@ -7,10 +7,7 @@ const lessonSchema = z.object({
   title: z.string().min(2, "Lesson title is required"),
   type: z.enum(["video", "reading", "assignment"]),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  resourceLink: z
-    .string()
-    .min(1, "Upload the lesson resource before publishing.")
-    .url("Resource link must be a valid URL"),
+  resourceLink: z.string().optional().default(""),
   objectives: z.array(z.string().min(2, "Objective is required")),
   prerequisites: z.array(z.string()),
   attachments: z.array(z.string().min(2, "Attachment name is required")),

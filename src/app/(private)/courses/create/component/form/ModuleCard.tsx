@@ -15,10 +15,13 @@ interface ModuleCardProps {
   moduleIndex: number;
   isActive: boolean;
   activeLessonIndex: number;
+  pendingModuleId: string | null;
   onSelectLesson: (moduleIndex: number, lessonIndex: number) => void;
+  onModuleTitleChange: (moduleIndex: number, nextTitle: string) => void;
   onRemoveModule: (moduleIndex: number) => void;
   onAddLesson: (moduleIndex: number) => void;
   onRemoveLesson: (moduleIndex: number, lessonIndex: number) => void;
+  onEditLesson: (moduleIndex: number, lessonIndex: number) => void;
 }
 
 export default function ModuleCard({
@@ -26,10 +29,13 @@ export default function ModuleCard({
   moduleIndex,
   isActive,
   activeLessonIndex,
+  pendingModuleId,
   onSelectLesson,
+  onModuleTitleChange,
   onRemoveModule,
   onAddLesson,
-  onRemoveLesson
+  onRemoveLesson,
+  onEditLesson
 }: ModuleCardProps) {
   const { fields } = useFieldArray({
     control: form.control,
@@ -43,6 +49,11 @@ export default function ModuleCard({
     }) ?? [];
 
   const lessonCount = lessonValues.length;
+  const moduleBackendId = useWatch({
+    control: form.control,
+    name: `modules.${moduleIndex}.backendId`
+  });
+  const isModuleUpdating = Boolean(moduleBackendId && moduleBackendId === pendingModuleId);
 
   const getLessonTypeLabel = (type?: string) => {
     if (type === "reading") {
@@ -76,6 +87,10 @@ export default function ModuleCard({
               <FormControl>
                 <Input
                   {...field}
+                  onChange={(event) => {
+                    field.onChange(event);
+                    onModuleTitleChange(moduleIndex, event.target.value);
+                  }}
                   className="h-8 border-transparent bg-white text-sm font-semibold text-foreground focus-visible:border-input"
                 />
               </FormControl>
@@ -84,10 +99,9 @@ export default function ModuleCard({
           )}
         />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {isModuleUpdating ? <span>Saving...</span> : null}
           <span>{lessonCount} Draft</span>
-          <Button type="button" variant="ghost" size="icon-sm" aria-label="Rename module">
-            <Pencil className="h-4 w-4" />
-          </Button>
+
           <Button
             type="button"
             variant="outline"
@@ -141,6 +155,18 @@ export default function ModuleCard({
                     </span>
                   </span>
                 </button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label="Edit lesson"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onEditLesson(moduleIndex, lessonIndex);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
                 <Button
                   type="button"
                   variant="outline"

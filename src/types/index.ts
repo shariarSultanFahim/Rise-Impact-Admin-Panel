@@ -18,6 +18,18 @@ export type {
 } from "./auth";
 export type { AuthSession } from "./auth-session";
 export type { CourseDetail } from "./course-detail";
+export type {
+  AddModuleResponse,
+  CourseModule,
+  CreateLessonResponse,
+  DeleteResponse,
+  GetLessonByIdResponse,
+  LessonContentType,
+  LessonItem,
+  UpdateLessonResponse,
+  UpdateModulePayload,
+  UpdateModuleResponse
+} from "./course-editor";
 export type { CourseForm, LessonForm, LessonType, ModuleForm } from "./course-form";
 export type {
   CourseManageItem,

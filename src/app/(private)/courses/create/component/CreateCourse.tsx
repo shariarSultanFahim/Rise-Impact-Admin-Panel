@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { BookOpen, Send } from "lucide-react";
@@ -10,21 +10,29 @@ import { toast } from "sonner";
 
 import type { CourseForm, LessonForm, ModuleForm } from "@/types/course-form";
 
+import { api as instance } from "@/lib/api";
+import { useAddModule } from "@/lib/api/courses/add-module";
 import { useCreateCourse } from "@/lib/api/courses/create-course";
+import { useCreateLesson } from "@/lib/api/courses/create-lesson";
+import { useDeleteLesson } from "@/lib/api/courses/delete-lesson";
+import { useDeleteModule } from "@/lib/api/courses/delete-module";
+import { useUpdateLesson } from "@/lib/api/courses/update-lesson";
+import { useUpdateModule } from "@/lib/api/courses/update-module";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import type { CreateCoursePayload } from "@/types";
+import type { CreateCoursePayload, GetLessonByIdResponse, LessonContentType } from "@/types";
 
 import CourseDetailsForm from "./form/CourseDetailsForm";
 import CurriculumBuilder from "./form/CurriculumBuilder";
 import LessonEditor from "./form/LessonEditor";
 import { courseFormSchema } from "./form/schema/course-form.schema";
 
-const createLesson = (): LessonForm => ({
+const createLessonDraft = (): LessonForm => ({
   id: crypto.randomUUID(),
-  title: "New Lesson",
+  isDraft: true,
+  title: "",
   type: "video",
   description: "",
   resourceLink: "",
@@ -37,8 +45,32 @@ const createLesson = (): LessonForm => ({
 const createModule = (): ModuleForm => ({
   id: crypto.randomUUID(),
   title: "New Module",
-  lessons: [createLesson()]
+  lessons: []
 });
+
+const toApiLessonType = (type: LessonForm["type"]): LessonContentType => {
+  if (type === "reading") {
+    return "READING";
+  }
+
+  if (type === "assignment") {
+    return "ASSIGNMENT";
+  }
+
+  return "VIDEO";
+};
+
+const toFormLessonType = (type: LessonContentType): LessonForm["type"] => {
+  if (type === "READING") {
+    return "reading";
+  }
+
+  if (type === "ASSIGNMENT") {
+    return "assignment";
+  }
+
+  return "video";
+};
 
 const defaultValues: CourseForm = {
   title: "",
@@ -51,6 +83,7 @@ const defaultValues: CourseForm = {
 interface CreateCourseProps {
   initialValues?: CourseForm;
   initialThumbnailPreviewUrl?: string;
+  courseId?: string;
   mode?: "create" | "edit";
   heading?: string;
   subheading?: string;
@@ -60,6 +93,7 @@ interface CreateCourseProps {
 export default function CreateCourse({
   initialValues,
   initialThumbnailPreviewUrl,
+  courseId,
   mode = "create",
   heading = "Course Management",
   subheading = "Create New Course",
@@ -77,6 +111,10 @@ export default function CreateCourse({
   const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(
     initialThumbnailPreviewUrl ?? null
   );
+  const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
+  const [pendingLessonKey, setPendingLessonKey] = useState<string | null>(null);
+  const moduleDebounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const contentFiles = useRef<Record<string, File | null>>({});
 
   const form = useForm<CourseForm>({
     resolver: zodResolver(courseFormSchema),
@@ -84,10 +122,14 @@ export default function CreateCourse({
   });
 
   useEffect(() => {
+    const timers = moduleDebounceTimers.current;
+
     return () => {
       if (thumbnailPreviewUrl) {
         URL.revokeObjectURL(thumbnailPreviewUrl);
       }
+
+      Object.values(timers).forEach((timer) => clearTimeout(timer));
     };
   }, [thumbnailPreviewUrl]);
 
@@ -104,6 +146,28 @@ export default function CreateCourse({
       ? (modules?.[activeModuleIndex]?.lessons?.[activeLessonIndex] ?? null)
       : null;
 
+  useEffect(() => {
+    if (modules.length === 0) {
+      setActiveModuleIndex(-1);
+      setActiveLessonIndex(-1);
+      return;
+    }
+
+    if (activeModuleIndex < 0 || activeModuleIndex >= modules.length) {
+      setActiveModuleIndex(0);
+    }
+
+    const lessons = modules[activeModuleIndex]?.lessons ?? [];
+    if (lessons.length === 0) {
+      setActiveLessonIndex(-1);
+      return;
+    }
+
+    if (activeLessonIndex < 0 || activeLessonIndex >= lessons.length) {
+      setActiveLessonIndex(0);
+    }
+  }, [activeLessonIndex, activeModuleIndex, modules]);
+
   const prerequisiteOptions = useMemo(() => {
     return modules
       .flatMap((module) => module.lessons)
@@ -111,14 +175,84 @@ export default function CreateCourse({
       .map((lesson) => ({ id: lesson.id, title: lesson.title || "Untitled Lesson" }));
   }, [modules, activeLesson?.id]);
 
-  const handleAddModule = () => {
-    moduleFieldArray.append(createModule());
-    const nextIndex = moduleFieldArray.fields.length;
-    setActiveModuleIndex(nextIndex);
-    setActiveLessonIndex(0);
+  const { mutateAsync: addModule } = useAddModule();
+  const { mutateAsync: updateModule } = useUpdateModule();
+  const { mutateAsync: deleteModule } = useDeleteModule();
+  const { mutateAsync: createLesson } = useCreateLesson();
+  const { mutateAsync: updateLesson } = useUpdateLesson();
+  const { mutateAsync: deleteLesson } = useDeleteLesson();
+
+  const handleAddModule = async () => {
+    if (!courseId) {
+      toast.error("Course identifier not found.");
+      return;
+    }
+
+    try {
+      const response = await addModule({ courseId, title: "New Module" });
+      const moduleData = response.data;
+      const nextIndex = moduleFieldArray.fields.length;
+
+      moduleFieldArray.append({
+        ...createModule(),
+        id: moduleData.moduleId,
+        backendId: moduleData.moduleId,
+        title: moduleData.title
+      });
+
+      setActiveModuleIndex(nextIndex);
+      setActiveLessonIndex(-1);
+      toast.success(response.message || "Module added successfully.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to add module.";
+      toast.error(message);
+    }
   };
 
-  const handleRemoveModule = (moduleIndex: number) => {
+  const handleModuleTitleChange = (moduleIndex: number, nextTitle: string) => {
+    const modulePath = `modules.${moduleIndex}.title` as const;
+    form.setValue(modulePath, nextTitle, { shouldDirty: true });
+
+    const moduleId = form.getValues(`modules.${moduleIndex}.backendId`);
+    if (!moduleId || !courseId) {
+      return;
+    }
+
+    const currentTimer = moduleDebounceTimers.current[moduleId];
+    if (currentTimer) {
+      clearTimeout(currentTimer);
+    }
+
+    moduleDebounceTimers.current[moduleId] = setTimeout(async () => {
+      try {
+        setPendingModuleId(moduleId);
+        await updateModule({
+          courseId,
+          moduleId,
+          payload: { title: form.getValues(modulePath) }
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to update module title.";
+        toast.error(message);
+      } finally {
+        setPendingModuleId(null);
+      }
+    }, 2000);
+  };
+
+  const handleRemoveModule = async (moduleIndex: number) => {
+    const moduleId = form.getValues(`modules.${moduleIndex}.backendId`);
+
+    if (moduleId && courseId) {
+      try {
+        await deleteModule({ courseId, moduleId });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to delete module.";
+        toast.error(message);
+        return;
+      }
+    }
+
     moduleFieldArray.remove(moduleIndex);
     const nextLength = moduleFieldArray.fields.length - 1;
     if (nextLength <= 0) {
@@ -134,20 +268,39 @@ export default function CreateCourse({
 
     if (moduleIndex === activeModuleIndex) {
       setActiveModuleIndex(Math.min(activeModuleIndex, nextLength - 1));
-      setActiveLessonIndex(0);
+      setActiveLessonIndex(-1);
     }
+
+    toast.success("Module deleted successfully.");
   };
 
   const handleAddLesson = (moduleIndex: number) => {
     const currentLessons = form.getValues(`modules.${moduleIndex}.lessons`);
-    form.setValue(`modules.${moduleIndex}.lessons`, [...currentLessons, createLesson()], {
+    form.setValue(`modules.${moduleIndex}.lessons`, [...currentLessons, createLessonDraft()], {
       shouldDirty: true
     });
     setActiveModuleIndex(moduleIndex);
     setActiveLessonIndex(currentLessons.length);
   };
 
-  const handleRemoveLesson = (moduleIndex: number, lessonIndex: number) => {
+  const handleRemoveLesson = async (moduleIndex: number, lessonIndex: number) => {
+    const lesson = form.getValues(`modules.${moduleIndex}.lessons.${lessonIndex}`);
+    const moduleId = form.getValues(`modules.${moduleIndex}.backendId`);
+
+    if (lesson?.backendId && moduleId && courseId) {
+      try {
+        await deleteLesson({
+          courseId,
+          moduleId,
+          lessonId: lesson.backendId
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to delete lesson.";
+        toast.error(message);
+        return;
+      }
+    }
+
     const currentLessons = form.getValues(`modules.${moduleIndex}.lessons`);
     const nextLessons = currentLessons.filter((_, index) => index !== lessonIndex);
     form.setValue(`modules.${moduleIndex}.lessons`, nextLessons, { shouldDirty: true });
@@ -169,11 +322,138 @@ export default function CreateCourse({
     if (lessonIndex === activeLessonIndex) {
       setActiveLessonIndex(Math.min(activeLessonIndex, nextLessons.length - 1));
     }
+
+    toast.success("Lesson deleted successfully.");
   };
 
   const handleSelectLesson = (moduleIndex: number, lessonIndex: number) => {
     setActiveModuleIndex(moduleIndex);
     setActiveLessonIndex(lessonIndex);
+  };
+
+  const handleEditLesson = async (moduleIndex: number, lessonIndex: number) => {
+    setActiveModuleIndex(moduleIndex);
+    setActiveLessonIndex(lessonIndex);
+
+    const selectedLesson = form.getValues(`modules.${moduleIndex}.lessons.${lessonIndex}`);
+    if (!selectedLesson.backendId || !courseId) {
+      return;
+    }
+
+    try {
+      const response = await instance.get<GetLessonByIdResponse>(
+        `/courses/${courseId}/lessons/${selectedLesson.backendId}`
+      );
+      const lesson = response.data.data;
+
+      form.setValue(`modules.${moduleIndex}.lessons.${lessonIndex}`, {
+        ...selectedLesson,
+        backendId: lesson._id,
+        title: lesson.title,
+        type: toFormLessonType(lesson.type),
+        description: lesson.description ?? "",
+        objectives: lesson.learningObjectives ?? [],
+        prerequisites: lesson.prerequisiteLesson ? [lesson.prerequisiteLesson] : [],
+        attachments: lesson.attachments ?? [],
+        isPublished: lesson.isVisible,
+        isDraft: false
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load lesson data.";
+      toast.error(message);
+    }
+  };
+
+  const handleSaveLesson = async (moduleIndex: number, lessonIndex: number) => {
+    if (!courseId) {
+      toast.error("Course identifier not found.");
+      return;
+    }
+
+    const moduleId = form.getValues(`modules.${moduleIndex}.backendId`);
+    if (!moduleId) {
+      toast.error("Module identifier not found.");
+      return;
+    }
+
+    const lessonPath = `modules.${moduleIndex}.lessons.${lessonIndex}` as const;
+    const lesson = form.getValues(lessonPath);
+    const valid = await form.trigger([`${lessonPath}.title`, `${lessonPath}.description`]);
+
+    if (!valid) {
+      toast.error("Please complete required lesson fields before saving.");
+      return;
+    }
+
+    const lessonKey = `${moduleIndex}-${lessonIndex}`;
+
+    try {
+      setPendingLessonKey(lessonKey);
+      const contentFile = contentFiles.current[lessonKey] ?? undefined;
+      const payload = {
+        title: lesson.title,
+        type: toApiLessonType(lesson.type),
+        description: lesson.description,
+        learningObjectives: lesson.objectives,
+        isVisible: lesson.isPublished,
+        prerequisiteLesson: lesson.prerequisites[0],
+        contentFile
+      };
+
+      if (lesson.isDraft || !lesson.backendId) {
+        const response = await createLesson({
+          courseId,
+          moduleId,
+          payload
+        });
+        const createdLesson = response.data;
+
+        form.setValue(lessonPath, {
+          ...lesson,
+          id: createdLesson._id,
+          backendId: createdLesson._id,
+          title: createdLesson.title,
+          type: toFormLessonType(createdLesson.type),
+          description: createdLesson.description ?? "",
+          objectives: createdLesson.learningObjectives ?? [],
+          prerequisites: createdLesson.prerequisiteLesson ? [createdLesson.prerequisiteLesson] : [],
+          attachments: createdLesson.attachments ?? [],
+          isPublished: createdLesson.isVisible,
+          isDraft: false
+        });
+        toast.success(response.message || "Lesson created successfully.");
+        return;
+      }
+
+      const response = await updateLesson({
+        courseId,
+        moduleId,
+        lessonId: lesson.backendId,
+        payload
+      });
+
+      const updatedLesson = response.data;
+      if (updatedLesson) {
+        form.setValue(lessonPath, {
+          ...lesson,
+          backendId: updatedLesson._id,
+          title: updatedLesson.title,
+          type: toFormLessonType(updatedLesson.type),
+          description: updatedLesson.description ?? "",
+          objectives: updatedLesson.learningObjectives ?? [],
+          prerequisites: updatedLesson.prerequisiteLesson ? [updatedLesson.prerequisiteLesson] : [],
+          attachments: updatedLesson.attachments ?? [],
+          isPublished: updatedLesson.isVisible,
+          isDraft: false
+        });
+      }
+      toast.success(response.message || "Lesson updated successfully.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to save lesson.";
+      toast.error(message);
+    } finally {
+      setPendingLessonKey(null);
+    }
   };
 
   const handleThumbnailChange = (file: File | null) => {
@@ -294,11 +574,14 @@ export default function CreateCourse({
               modules={moduleFieldArray.fields}
               activeModuleIndex={activeModuleIndex}
               activeLessonIndex={activeLessonIndex}
+              pendingModuleId={pendingModuleId}
               onAddModule={handleAddModule}
+              onModuleTitleChange={handleModuleTitleChange}
               onRemoveModule={handleRemoveModule}
               onAddLesson={handleAddLesson}
               onRemoveLesson={handleRemoveLesson}
               onSelectLesson={handleSelectLesson}
+              onEditLesson={handleEditLesson}
             />
 
             {activeLesson ? (
@@ -309,6 +592,12 @@ export default function CreateCourse({
                 lessonIndex={activeLessonIndex}
                 lessonId={activeLesson.id}
                 prerequisiteOptions={prerequisiteOptions}
+                isDraft={Boolean(activeLesson.isDraft)}
+                isSubmitting={pendingLessonKey === `${activeModuleIndex}-${activeLessonIndex}`}
+                onSubmitLesson={() => handleSaveLesson(activeModuleIndex, activeLessonIndex)}
+                onContentFileChange={(file) => {
+                  contentFiles.current[`${activeModuleIndex}-${activeLessonIndex}`] = file;
+                }}
               />
             ) : (
               <Card className="flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-muted bg-muted/10 p-6 text-center">

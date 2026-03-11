@@ -3,10 +3,12 @@ export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "SCHEDULED";
 
 export interface LessonForm {
   id: string;
+  backendId?: string;
+  isDraft?: boolean;
   title: string;
   type: LessonType;
   description: string;
-  resourceLink: string;
+  resourceLink?: string;
   objectives: string[];
   prerequisites: string[];
   attachments: string[];
@@ -15,6 +17,7 @@ export interface LessonForm {
 
 export interface ModuleForm {
   id: string;
+  backendId?: string;
   title: string;
   lessons: LessonForm[];
 }

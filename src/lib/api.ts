@@ -111,6 +111,5 @@ async function getToken(): Promise<string | null> {
 
   const session = parseSession(rawSession);
   const token = session?.accessToken ?? null;
-  console.log("[api] session token:", token);
   return token;
 }

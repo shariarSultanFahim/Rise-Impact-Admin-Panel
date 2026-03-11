@@ -4,11 +4,8 @@ import { useEffect, useState } from "react";
 
 import { BookOpen, Plus, Trash2, Upload } from "lucide-react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
-import { toast } from "sonner";
 
-import type { CourseForm, LessonType } from "@/types/course-form";
-
-import { uploadLessonResource } from "@/helpers/course-resource";
+import type { CourseForm } from "@/types/course-form";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +29,10 @@ interface LessonEditorProps {
   lessonIndex: number;
   lessonId: string;
   prerequisiteOptions: Array<{ id: string; title: string }>;
+  isDraft: boolean;
+  isSubmitting: boolean;
+  onSubmitLesson: () => void;
+  onContentFileChange: (file: File | null) => void;
 }
 
 export default function LessonEditor({
@@ -39,10 +40,13 @@ export default function LessonEditor({
   moduleIndex,
   lessonIndex,
   lessonId,
-  prerequisiteOptions
+  prerequisiteOptions,
+  isDraft,
+  isSubmitting,
+  onSubmitLesson,
+  onContentFileChange
 }: LessonEditorProps) {
   const [resourceFile, setResourceFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   const objectives =
     useWatch({
@@ -63,49 +67,23 @@ export default function LessonEditor({
 
   useEffect(() => {
     setResourceFile(null);
+    onContentFileChange(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
   const resourceLabel =
     lessonType === "reading"
-      ? "Upload Reading Material"
+      ? "Select Reading Material"
       : lessonType === "assignment"
-        ? "Upload Assignment"
-        : "Upload Video";
-
-  const handleUpload = async () => {
-    if (!resourceFile) {
-      form.setError(`modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`, {
-        type: "manual",
-        message: "Select a file before uploading."
-      });
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      const lessonType = form.getValues(`modules.${moduleIndex}.lessons.${lessonIndex}.type`);
-      const resourceLink = await uploadLessonResource(resourceFile, lessonType as LessonType);
-      form.setValue(`modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`, resourceLink, {
-        shouldValidate: true
-      });
-      form.clearErrors(`modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`);
-      toast.success("Resource uploaded successfully.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Upload failed. Try again.";
-      form.setError(`modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`, {
-        type: "manual",
-        message
-      });
-      toast.error(message);
-    } finally {
-      setIsUploading(false);
-    }
-  };
+        ? "Select Assignment File"
+        : "Select Video File";
 
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Create New Lesson</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          {isDraft ? "Create New Lesson" : "Edit Lesson"}
+        </CardTitle>
         <p className="text-xs text-muted-foreground">Configure lesson content and settings</p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -155,32 +133,19 @@ export default function LessonEditor({
           <div className="mt-4 flex flex-col items-center gap-2">
             <Input
               type="file"
-              className="max-w-[220px]"
-              onChange={(event) => setResourceFile(event.target.files?.[0] ?? null)}
+              className="max-w-[240px]"
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                setResourceFile(file);
+                onContentFileChange(file);
+              }}
             />
-            <Button
-              type="button"
-              size="sm"
-              className="gap-2"
-              onClick={handleUpload}
-              disabled={isUploading}
-            >
-              <Upload className="h-4 w-4" />
-              {isUploading ? "Uploading..." : "Upload Resource"}
-            </Button>
-          </div>
-          <FormField
-            control={form.control}
-            name={`modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`}
-            render={({ field }) => (
-              <FormItem className="mt-3 text-left">
-                <FormControl>
-                  <Input className="bg-white" type="hidden" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            {resourceFile && (
+              <p className="max-w-[240px] truncate text-xs text-muted-foreground">
+                Selected: {resourceFile.name}
+              </p>
             )}
-          />
+          </div>
         </div>
 
         <FormField
@@ -373,9 +338,14 @@ export default function LessonEditor({
           )}
         />
 
-        <Button type="button" className="w-full gap-2">
+        <Button
+          type="button"
+          className="w-full gap-2"
+          onClick={onSubmitLesson}
+          disabled={isSubmitting}
+        >
           <BookOpen className="h-4 w-4" />
-          Create Lesson
+          {isSubmitting ? "Saving..." : isDraft ? "Create Lesson" : "Update Lesson"}
         </Button>
       </CardContent>
     </Card>
