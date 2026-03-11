@@ -95,6 +95,7 @@ export type {
   OverviewStat,
   OverviewSummary
 } from "./overview";
+export type { UpdateCoursePayload, UpdateCourseResponse } from "./update-course";
 export type { User } from "./user";
 export type {
   UserDetailsActivity,

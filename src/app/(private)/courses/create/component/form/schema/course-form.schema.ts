@@ -20,7 +20,7 @@ const moduleSchema = z.object({
   lessons: z.array(lessonSchema).min(1, "Add at least one lesson")
 });
 
-const courseStatusSchema = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "SCHEDULED"]);
+const courseStatusSchema = z.enum(["DRAFT", "PUBLISHED", "SCHEDULED"]);
 
 export const courseFormSchema = z.object({
   title: z.string().min(2, "Course title is required"),

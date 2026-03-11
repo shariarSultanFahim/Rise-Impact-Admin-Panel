@@ -76,12 +76,7 @@ const normalizeModules = (modules: unknown): ModuleForm[] => {
 };
 
 const normalizeStatus = (status: string): CourseStatus => {
-  if (
-    status === "PUBLISHED" ||
-    status === "DRAFT" ||
-    status === "ARCHIVED" ||
-    status === "SCHEDULED"
-  ) {
+  if (status === "PUBLISHED" || status === "DRAFT" || status === "SCHEDULED") {
     return status;
   }
 
@@ -122,6 +117,7 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
       <CreateCourse
         mode="edit"
         courseId={course.data._id}
+        courseSlug={slug}
         initialValues={initialValues}
         initialThumbnailPreviewUrl={course.data.thumbnail}
         subheading="Edit Course"

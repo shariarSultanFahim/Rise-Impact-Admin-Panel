@@ -151,7 +151,6 @@ export default function CourseDetailsForm({
                     <SelectContent>
                       <SelectItem value="DRAFT">DRAFT</SelectItem>
                       <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
-                      <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
                       <SelectItem value="SCHEDULED">SCHEDULED</SelectItem>
                     </SelectContent>
                   </Select>

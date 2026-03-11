@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Send } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -12,7 +13,7 @@ import type { CourseForm, LessonForm, ModuleForm } from "@/types/course-form";
 
 import { api as instance } from "@/lib/api";
 import { useAddModule } from "@/lib/api/courses/add-module";
-import { useCreateCourse } from "@/lib/api/courses/create-course";
+import { useCreateCourse, useUpdateCourse } from "@/lib/api/courses/create-course";
 import { useCreateLesson } from "@/lib/api/courses/create-lesson";
 import { useDeleteLesson } from "@/lib/api/courses/delete-lesson";
 import { useDeleteModule } from "@/lib/api/courses/delete-module";
@@ -72,6 +73,16 @@ const toFormLessonType = (type: LessonContentType): LessonForm["type"] => {
   return "video";
 };
 
+// The API may return `prerequisiteLesson` as a populated document object
+// instead of a plain string ID. Safely extract the string ID from either.
+const resolvePrerequisiteId = (val: unknown): string | null => {
+  if (!val) return null;
+  if (typeof val === "string") return val;
+  if (typeof val === "object" && val !== null && "_id" in val)
+    return String((val as Record<string, unknown>)._id);
+  return null;
+};
+
 const defaultValues: CourseForm = {
   title: "",
   status: "DRAFT",
@@ -84,6 +95,7 @@ interface CreateCourseProps {
   initialValues?: CourseForm;
   initialThumbnailPreviewUrl?: string;
   courseId?: string;
+  courseSlug?: string;
   mode?: "create" | "edit";
   heading?: string;
   subheading?: string;
@@ -94,12 +106,14 @@ export default function CreateCourse({
   initialValues,
   initialThumbnailPreviewUrl,
   courseId,
+  courseSlug,
   mode = "create",
   heading = "Course Management",
   subheading = "Create New Course",
   submitLabel = "Create Course"
 }: CreateCourseProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isEditMode = mode === "edit";
 
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
@@ -113,6 +127,7 @@ export default function CreateCourse({
   );
   const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
   const [pendingLessonKey, setPendingLessonKey] = useState<string | null>(null);
+  const [isUpdatingCourse, setIsUpdatingCourse] = useState(false);
   const moduleDebounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const contentFiles = useRef<Record<string, File | null>>({});
 
@@ -181,6 +196,7 @@ export default function CreateCourse({
   const { mutateAsync: createLesson } = useCreateLesson();
   const { mutateAsync: updateLesson } = useUpdateLesson();
   const { mutateAsync: deleteLesson } = useDeleteLesson();
+  const { mutateAsync: updateCourse } = useUpdateCourse();
 
   const handleAddModule = async () => {
     if (!courseId) {
@@ -348,12 +364,15 @@ export default function CreateCourse({
 
       form.setValue(`modules.${moduleIndex}.lessons.${lessonIndex}`, {
         ...selectedLesson,
-        backendId: lesson._id,
+        backendId: String(lesson._id),
         title: lesson.title,
         type: toFormLessonType(lesson.type),
         description: lesson.description ?? "",
         objectives: lesson.learningObjectives ?? [],
-        prerequisites: lesson.prerequisiteLesson ? [lesson.prerequisiteLesson] : [],
+        prerequisites: (() => {
+          const id = resolvePrerequisiteId(lesson.prerequisiteLesson as unknown);
+          return id ? [id] : [];
+        })(),
         attachments: lesson.attachments ?? [],
         isPublished: lesson.isVisible,
         isDraft: false
@@ -410,13 +429,16 @@ export default function CreateCourse({
 
         form.setValue(lessonPath, {
           ...lesson,
-          id: createdLesson._id,
-          backendId: createdLesson._id,
+          id: String(createdLesson._id),
+          backendId: String(createdLesson._id),
           title: createdLesson.title,
           type: toFormLessonType(createdLesson.type),
           description: createdLesson.description ?? "",
           objectives: createdLesson.learningObjectives ?? [],
-          prerequisites: createdLesson.prerequisiteLesson ? [createdLesson.prerequisiteLesson] : [],
+          prerequisites: (() => {
+            const id = resolvePrerequisiteId(createdLesson.prerequisiteLesson as unknown);
+            return id ? [id] : [];
+          })(),
           attachments: createdLesson.attachments ?? [],
           isPublished: createdLesson.isVisible,
           isDraft: false
@@ -436,12 +458,15 @@ export default function CreateCourse({
       if (updatedLesson) {
         form.setValue(lessonPath, {
           ...lesson,
-          backendId: updatedLesson._id,
+          backendId: String(updatedLesson._id),
           title: updatedLesson.title,
           type: toFormLessonType(updatedLesson.type),
           description: updatedLesson.description ?? "",
           objectives: updatedLesson.learningObjectives ?? [],
-          prerequisites: updatedLesson.prerequisiteLesson ? [updatedLesson.prerequisiteLesson] : [],
+          prerequisites: (() => {
+            const id = resolvePrerequisiteId(updatedLesson.prerequisiteLesson as unknown);
+            return id ? [id] : [];
+          })(),
           attachments: updatedLesson.attachments ?? [],
           isPublished: updatedLesson.isVisible,
           isDraft: false
@@ -466,37 +491,51 @@ export default function CreateCourse({
     setThumbnailPreviewUrl(file ? URL.createObjectURL(file) : null);
   };
 
-  const handleEditSubmit = (values: CourseForm) => {
-    if (values.modules.length === 0) {
-      form.setError("modules", {
-        type: "manual",
-        message: "Add at least one module"
-      });
-      toast.error("Add at least one module before updating the course.");
+  const handleEditSubmit = async () => {
+    if (!courseId) {
+      toast.error("Course identifier not found.");
       return;
     }
 
-    const lessonsMissingResources = values.modules.flatMap((module, moduleIndex) =>
-      module.lessons
-        .filter((lesson) => !lesson.resourceLink)
-        .map((_, lessonIndex) => ({
-          moduleIndex,
-          lessonIndex
-        }))
-    );
+    const valid = await form.trigger(["title", "description", "status", "thumbnailUrl"]);
+    if (!valid) {
+      toast.error("Please complete all required course fields.");
+      return;
+    }
 
-    if (lessonsMissingResources.length > 0) {
-      lessonsMissingResources.forEach(({ moduleIndex, lessonIndex }) => {
-        form.setError(`modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`, {
-          type: "manual",
-          message: "Upload the lesson resource before publishing."
+    const values = form.getValues();
+
+    try {
+      setIsUpdatingCourse(true);
+      const response = await updateCourse({
+        courseId,
+        title: values.title,
+        description: values.description,
+        status: values.status,
+        thumbnail: thumbnailFile ?? undefined
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to update course.");
+      }
+
+      if (courseSlug) {
+        await queryClient.invalidateQueries({
+          queryKey: ["course-details", courseSlug]
         });
-      });
-      toast.error("Upload all lesson resources before publishing.");
-      return;
-    }
+        await queryClient.refetchQueries({
+          queryKey: ["course-details", courseSlug],
+          type: "all"
+        });
+      }
 
-    toast.success(`${submitLabel} successful.`);
+      toast.success(response.message || "Course updated successfully.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update course.";
+      toast.error(message);
+    } finally {
+      setIsUpdatingCourse(false);
+    }
   };
   const { mutateAsync: createCourse } = useCreateCourse();
 
@@ -539,11 +578,9 @@ export default function CreateCourse({
     }
   };
 
-  const handleSubmit = isEditMode ? handleEditSubmit : handleCreateSubmit;
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleCreateSubmit)} className="space-y-6">
         <Card className="flex flex-col gap-4 border-none bg-transparent pt-0 shadow-none">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
@@ -551,9 +588,14 @@ export default function CreateCourse({
               <p className="text-sm text-muted-foreground">{subheading}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" className="gap-2">
+              <Button
+                type={isEditMode ? "button" : "submit"}
+                className="gap-2"
+                onClick={isEditMode ? () => void handleEditSubmit() : undefined}
+                disabled={isEditMode ? isUpdatingCourse : false}
+              >
                 <Send className="h-4 w-4" />
-                {submitLabel}
+                {isEditMode && isUpdatingCourse ? "Updating..." : submitLabel}
               </Button>
             </div>
           </div>

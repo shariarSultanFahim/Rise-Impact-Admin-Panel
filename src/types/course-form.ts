@@ -1,5 +1,5 @@
 export type LessonType = "video" | "reading" | "assignment";
-export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "SCHEDULED";
+export type CourseStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
 
 export interface LessonForm {
   id: string;

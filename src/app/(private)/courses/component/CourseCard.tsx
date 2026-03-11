@@ -4,6 +4,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { BarChart3, BookOpen, Pencil, Trash2, Users } from "lucide-react";
+import { toast } from "sonner";
+
+import { useDeleteCourse } from "@/lib/api/courses/delete-course";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +31,21 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   const handleNavigate = () => {
     router.push(`/courses/edit/${course.slug}`);
+  };
+  const { mutate: deleteCourse } = useDeleteCourse();
+  const handleDelete = ({ id }: { id: string }) => {
+    deleteCourse(
+      { courseId: id },
+      {
+        onSuccess: () => {
+          toast.success("Course deleted successfully");
+          router.refresh();
+        },
+        onError: () => {
+          toast.error("Failed to delete course. Please try again.");
+        }
+      }
+    );
   };
 
   return (
@@ -98,7 +116,10 @@ export default function CourseCard({ course }: CourseCardProps) {
             className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
             size="icon-sm"
             aria-label="Delete course"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDelete({ id: course._id });
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
