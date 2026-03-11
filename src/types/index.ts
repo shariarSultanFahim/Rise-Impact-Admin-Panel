@@ -9,8 +9,23 @@ export type {
   AnalyticsTopCourse,
   AnalyticsTrend
 } from "./analytics";
+export type {
+  LoginErrorMessage,
+  LoginErrorResponse,
+  LoginRequest,
+  LoginResponse,
+  LoginResponseData
+} from "./auth";
+export type { AuthSession } from "./auth-session";
 export type { CourseDetail } from "./course-detail";
 export type { CourseForm, LessonForm, LessonType, ModuleForm } from "./course-form";
+export type {
+  CourseManageItem,
+  CourseManagePagination,
+  CourseManageQueryParams,
+  CourseManageResponse,
+  CourseManageStatus
+} from "./course-manage";
 export type {
   CourseCardItem,
   CoursesData,
@@ -19,13 +34,18 @@ export type {
   CoursesPagination,
   CoursesStat
 } from "./courses";
+export type {
+  CreateCoursePayload,
+  CreateCourseResponse,
+  CreateCourseResponseData
+} from "./create-course";
 export type { DataTableProps } from "./data-table";
 export type {
   DiscussionMessage,
+  DiscussionThreadItem,
   DiscussionsData,
   DiscussionsHeading,
-  DiscussionsPagination,
-  DiscussionThreadItem
+  DiscussionsPagination
 } from "./discussions";
 export type {
   CreateFeedbackInput,
@@ -51,9 +71,9 @@ export type {
 } from "./gradebook";
 export type {
   NotificationAudience,
+  NotificationTemplate,
   NotificationsData,
-  NotificationsHeading,
-  NotificationTemplate
+  NotificationsHeading
 } from "./notifications";
 export type {
   OverviewActivity,

@@ -146,28 +146,15 @@ export default function CourseDetailsForm({
                 <FormControl>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Active" />
+                      <SelectValue placeholder="DRAFT" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="In Active">In Active</SelectItem>
-                      <SelectItem value="Upcoming">Upcoming</SelectItem>
+                      <SelectItem value="DRAFT">DRAFT</SelectItem>
+                      <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
+                      <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
+                      <SelectItem value="SCHEDULED">SCHEDULED</SelectItem>
                     </SelectContent>
                   </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="publishedAt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Published Schedule (Optional)</FormLabel>
-                <FormControl>
-                  <Input className="bg-white" type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

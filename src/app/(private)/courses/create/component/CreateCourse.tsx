@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { BookOpen, Save, Send } from "lucide-react";
+import { BookOpen, Send } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import type { CourseForm, LessonForm, ModuleForm } from "@/types/course-form";
 
+import { useCreateCourse } from "@/lib/api/courses/create-course";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import type { CreateCoursePayload } from "@/types";
 
 import CourseDetailsForm from "./form/CourseDetailsForm";
 import CurriculumBuilder from "./form/CurriculumBuilder";
@@ -38,8 +42,7 @@ const createModule = (): ModuleForm => ({
 
 const defaultValues: CourseForm = {
   title: "",
-  status: "Active",
-  publishedAt: "",
+  status: "DRAFT",
   description: "",
   thumbnailUrl: "",
   modules: []
@@ -48,6 +51,7 @@ const defaultValues: CourseForm = {
 interface CreateCourseProps {
   initialValues?: CourseForm;
   initialThumbnailPreviewUrl?: string;
+  mode?: "create" | "edit";
   heading?: string;
   subheading?: string;
   submitLabel?: string;
@@ -56,12 +60,17 @@ interface CreateCourseProps {
 export default function CreateCourse({
   initialValues,
   initialThumbnailPreviewUrl,
+  mode = "create",
   heading = "Course Management",
   subheading = "Create New Course",
-  submitLabel = "Publish Course"
+  submitLabel = "Create Course"
 }: CreateCourseProps) {
+  const router = useRouter();
+  const isEditMode = mode === "edit";
+
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
   const [activeLessonIndex, setActiveLessonIndex] = useState(0);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailName, setThumbnailName] = useState<string | null>(
     initialValues?.thumbnailUrl ?? null
   );
@@ -171,12 +180,22 @@ export default function CreateCourse({
     if (thumbnailPreviewUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(thumbnailPreviewUrl);
     }
+    setThumbnailFile(file);
     setThumbnailName(file?.name ?? null);
     form.setValue("thumbnailUrl", file?.name ?? "", { shouldValidate: true });
     setThumbnailPreviewUrl(file ? URL.createObjectURL(file) : null);
   };
 
-  const handleSubmit = (values: CourseForm) => {
+  const handleEditSubmit = (values: CourseForm) => {
+    if (values.modules.length === 0) {
+      form.setError("modules", {
+        type: "manual",
+        message: "Add at least one module"
+      });
+      toast.error("Add at least one module before updating the course.");
+      return;
+    }
+
     const lessonsMissingResources = values.modules.flatMap((module, moduleIndex) =>
       module.lessons
         .filter((lesson) => !lesson.resourceLink)
@@ -197,10 +216,50 @@ export default function CreateCourse({
       return;
     }
 
-    const actionLabel = submitLabel === "Publish Course" ? "Publish" : "Update";
-    console.log(`${actionLabel} course`, values);
     toast.success(`${submitLabel} successful.`);
   };
+  const { mutateAsync: createCourse } = useCreateCourse();
+
+  const handleCreateSubmit = async (values: CourseForm) => {
+    if (!thumbnailFile) {
+      form.setError("thumbnailUrl", {
+        type: "manual",
+        message: "Upload a course thumbnail before creating the course."
+      });
+      return;
+    }
+
+    try {
+      const payload: CreateCoursePayload = {
+        title: values.title,
+        description: values.description,
+        status: values.status,
+        thumbnail: thumbnailFile
+      };
+
+      const response = await createCourse(payload);
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to create course.");
+      }
+
+      const createdCourseSlug = response.data?.slug;
+
+      if (!createdCourseSlug) {
+        throw new Error("Course created but no course slug was returned.");
+      }
+
+      toast.success(
+        response.message || "Course created successfully. Continue editing modules and lessons."
+      );
+      router.push(`/courses/edit/${createdCourseSlug}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to create course.";
+      toast.error(message);
+    }
+  };
+
+  const handleSubmit = isEditMode ? handleEditSubmit : handleCreateSubmit;
 
   return (
     <Form {...form}>
@@ -212,11 +271,6 @@ export default function CreateCourse({
               <p className="text-sm text-muted-foreground">{subheading}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" className="gap-2">
-                <Save className="h-4 w-4" />
-                Save Draft
-              </Button>
-
               <Button type="submit" className="gap-2">
                 <Send className="h-4 w-4" />
                 {submitLabel}
@@ -233,42 +287,44 @@ export default function CreateCourse({
           subheading={subheading}
         />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <CurriculumBuilder
-            form={form}
-            modules={moduleFieldArray.fields}
-            activeModuleIndex={activeModuleIndex}
-            activeLessonIndex={activeLessonIndex}
-            onAddModule={handleAddModule}
-            onRemoveModule={handleRemoveModule}
-            onAddLesson={handleAddLesson}
-            onRemoveLesson={handleRemoveLesson}
-            onSelectLesson={handleSelectLesson}
-          />
-
-          {activeLesson ? (
-            <LessonEditor
-              key={activeLesson.id}
+        {isEditMode && (
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <CurriculumBuilder
               form={form}
-              moduleIndex={activeModuleIndex}
-              lessonIndex={activeLessonIndex}
-              lessonId={activeLesson.id}
-              prerequisiteOptions={prerequisiteOptions}
+              modules={moduleFieldArray.fields}
+              activeModuleIndex={activeModuleIndex}
+              activeLessonIndex={activeLessonIndex}
+              onAddModule={handleAddModule}
+              onRemoveModule={handleRemoveModule}
+              onAddLesson={handleAddLesson}
+              onRemoveLesson={handleRemoveLesson}
+              onSelectLesson={handleSelectLesson}
             />
-          ) : (
-            <Card className="flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-muted bg-muted/10 p-6 text-center">
-              <div className="rounded-full bg-muted p-3 text-muted-foreground">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground">No Lesson Selected</p>
-                <p className="text-xs text-muted-foreground">
-                  Select a lesson from the curriculum or add a new one to start editing.
-                </p>
-              </div>
-            </Card>
-          )}
-        </div>
+
+            {activeLesson ? (
+              <LessonEditor
+                key={activeLesson.id}
+                form={form}
+                moduleIndex={activeModuleIndex}
+                lessonIndex={activeLessonIndex}
+                lessonId={activeLesson.id}
+                prerequisiteOptions={prerequisiteOptions}
+              />
+            ) : (
+              <Card className="flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-muted bg-muted/10 p-6 text-center">
+                <div className="rounded-full bg-muted p-3 text-muted-foreground">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">No Lesson Selected</p>
+                  <p className="text-xs text-muted-foreground">
+                    Select a lesson from the curriculum or add a new one to start editing.
+                  </p>
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
       </form>
     </Form>
   );

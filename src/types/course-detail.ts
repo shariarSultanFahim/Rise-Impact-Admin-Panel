@@ -1,8 +1,21 @@
-import type { CourseForm } from "./course-form";
-import type { CourseStatus } from "./courses";
+import type { CourseForm, ModuleForm } from "./course-form";
 
 export interface CourseDetail extends CourseForm {
   id: string;
-  status: CourseStatus;
   thumbnailPreviewUrl: string;
+}
+
+export interface CourseDetailByIdItem {
+  _id: string;
+  title: string;
+  status: string;
+  thumbnail: string;
+  description: string;
+  modules: ModuleForm[];
+}
+
+export interface CourseDetailByIdResponse {
+  success: boolean;
+  message: string;
+  data?: CourseDetailByIdItem;
 }

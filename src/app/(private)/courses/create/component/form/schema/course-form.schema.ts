@@ -23,11 +23,12 @@ const moduleSchema = z.object({
   lessons: z.array(lessonSchema).min(1, "Add at least one lesson")
 });
 
+const courseStatusSchema = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "SCHEDULED"]);
+
 export const courseFormSchema = z.object({
   title: z.string().min(2, "Course title is required"),
-  status: z.enum(["Active", "In Active", "Upcoming"]),
-  publishedAt: z.string(),
+  status: courseStatusSchema,
   description: z.string().min(10, "Description must be at least 10 characters"),
   thumbnailUrl: z.string().min(1, "Upload a course thumbnail before publishing."),
-  modules: z.array(moduleSchema).min(1, "Add at least one module")
+  modules: z.array(moduleSchema)
 }) satisfies z.ZodType<CourseForm>;

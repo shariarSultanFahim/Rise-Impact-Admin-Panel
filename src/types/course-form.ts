@@ -1,4 +1,5 @@
 export type LessonType = "video" | "reading" | "assignment";
+export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "SCHEDULED";
 
 export interface LessonForm {
   id: string;
@@ -20,8 +21,7 @@ export interface ModuleForm {
 
 export interface CourseForm {
   title: string;
-  status: "Active" | "In Active" | "Upcoming";
-  publishedAt: string;
+  status: CourseStatus;
   description: string;
   thumbnailUrl: string;
   modules: ModuleForm[];

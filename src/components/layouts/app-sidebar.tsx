@@ -21,6 +21,10 @@ import {
   UserRoundPen
 } from "lucide-react";
 
+import { AUTH_SESSION_COOKIE } from "@/constants/auth";
+
+import { cookie } from "@/lib/cookie-client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -129,6 +133,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const rootPath = pathname.split("/")[1];
 
+  const handleSignOut = () => {
+    cookie.remove(AUTH_SESSION_COOKIE);
+  };
+
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -201,6 +209,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
               <Link
                 href="/login"
+                onClick={handleSignOut}
                 className="h-10 w-full border border-secondary bg-transparent group-data-[collapsible=icon]:p-0 hover:border-white/20 hover:bg-white/25 hover:text-primary-foreground hover:shadow-md hover:backdrop-blur-sm"
               >
                 <button className="flex w-full items-center justify-center gap-2 border-none">

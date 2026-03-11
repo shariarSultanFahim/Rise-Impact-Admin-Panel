@@ -5,27 +5,29 @@ import { useRouter } from "next/navigation";
 
 import { BarChart3, BookOpen, Pencil, Trash2, Users } from "lucide-react";
 
-import type { CourseCardItem } from "@/types/courses";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import type { CourseManageItem, CourseManageStatus } from "@/types";
 
-const STATUS_STYLES: Record<CourseCardItem["status"], string> = {
-  Active: "bg-emerald-100 text-emerald-700",
-  "In Active": "bg-slate-100 text-slate-600",
-  Upcoming: "bg-amber-100 text-amber-700"
+const STATUS_STYLES: Record<CourseManageStatus, string> = {
+  DRAFT: "bg-slate-100 text-slate-600",
+  PUBLISHED: "bg-emerald-100 text-emerald-700",
+  SCHEDULED: "bg-amber-100 text-amber-700",
+  ARCHIVED: "bg-red-100 text-red-700"
 };
 
+const PLACEHOLDER_THUMBNAIL = "/logo.png";
+
 interface CourseCardProps {
-  course: CourseCardItem;
+  course: CourseManageItem;
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
 
   const handleNavigate = () => {
-    router.push(`/courses/edit/${course.id}`);
+    router.push(`/courses/edit/${course.slug}`);
   };
 
   return (
@@ -43,7 +45,12 @@ export default function CourseCard({ course }: CourseCardProps) {
       }}
     >
       <figure className="relative h-40 w-full overflow-hidden">
-        <Image src={course.imageUrl} alt={course.title} fill className="object-cover" />
+        <Image
+          src={course.thumbnail || PLACEHOLDER_THUMBNAIL}
+          alt={course.title}
+          fill
+          className="object-cover"
+        />
         <figcaption className="sr-only">{course.title} course thumbnail</figcaption>
         <Badge className={`absolute top-3 right-3 ${STATUS_STYLES[course.status]}`}>
           {course.status}
@@ -56,18 +63,18 @@ export default function CourseCard({ course }: CourseCardProps) {
         <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground">
           <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
             <BookOpen className="h-4 w-4 text-foreground" />
-            <span className="text-[11px]">Modules</span>
-            <span className="text-sm font-semibold text-foreground">{course.modules}</span>
+            <span className="text-[11px]">Lessons</span>
+            <span className="text-sm font-semibold text-foreground">{course.totalLessons}</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
             <Users className="h-4 w-4 text-foreground" />
-            <span className="text-[11px]">Students</span>
-            <span className="text-sm font-semibold text-foreground">{course.students}</span>
+            <span className="text-[11px]">Enrolled</span>
+            <span className="text-sm font-semibold text-foreground">{course.enrollmentCount}</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
             <BarChart3 className="h-4 w-4 text-foreground" />
-            <span className="text-[11px]">Complete</span>
-            <span className="text-sm font-semibold text-foreground">{course.completionRate}%</span>
+            <span className="text-[11px]">Rating</span>
+            <span className="text-sm font-semibold text-foreground">{course.averageRating}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -80,6 +87,7 @@ export default function CourseCard({ course }: CourseCardProps) {
               event.stopPropagation();
               handleNavigate();
             }}
+            aria-label={`Edit ${course.title}`}
           >
             <Pencil className="h-4 w-4" />
             Edit
