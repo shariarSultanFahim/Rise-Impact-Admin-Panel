@@ -14,6 +14,12 @@ export interface LoginResponse {
   data?: LoginResponseData;
 }
 
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  data?: LoginResponseData;
+}
+
 export interface LoginErrorMessage {
   path: string;
   message: string;

@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 import type { CourseCardItem } from "@/types/courses";
 import type { NotificationsData } from "@/types/notifications";
-import type { UserManagementUser } from "@/types/user-management";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +31,7 @@ import NotificationModal from "./NotificationModal";
 type NotificationsContentProps = {
   data: NotificationsData;
   courses: CourseCardItem[];
-  students: UserManagementUser[];
+  students: unknown[];
 };
 
 const audienceIcons = {

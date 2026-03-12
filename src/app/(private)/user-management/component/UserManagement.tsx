@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { ChevronDown, Download, Eye, Filter, Pencil, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Download, Eye, Filter, Search } from "lucide-react";
+import { useDebounceValue } from "usehooks-ts";
 
-import type { UserManagementData } from "@/types/user-management";
+import type {
+  UserManageQueryParams,
+  UserManageResponse,
+  UserManageStatus
+} from "@/types/users-manage";
+
+import { useBlockUser } from "@/lib/api/user/block-user";
+import { useUnblockUser } from "@/lib/api/user/unblock-user";
+import { formatDate } from "@/lib/date";
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,17 +38,17 @@ import {
   TableRow
 } from "@/components/ui/table";
 
-import UserDialogs from "./UserDialogs";
+const STATUS_OPTIONS: Array<{ label: string; value: UserManageStatus | "" }> = [
+  { label: "All", value: "" },
+  { label: "Active", value: "ACTIVE" },
+  { label: "Inactive", value: "INACTIVE" },
+  { label: "Restricted", value: "RESTRICTED" }
+];
 
 interface UserManagementProps {
-  data: UserManagementData;
-}
-
-interface EditingUser {
-  id: string;
-  name: string;
-  role: string;
-  status: string;
+  data: UserManageResponse;
+  params: UserManageQueryParams;
+  onParamsChange: (params: UserManageQueryParams) => void;
 }
 
 function getInitials(name: string) {
@@ -57,59 +66,97 @@ function statusBadgeClass(status: string) {
   if (normalized === "inactive") {
     return "bg-slate-100 text-slate-600";
   }
+  if (normalized === "restricted") {
+    return "bg-amber-100 text-amber-700";
+  }
   return "bg-muted text-muted-foreground";
 }
 
-export default function UserManagement({ data }: UserManagementProps) {
+export default function UserManagement({ data, params, onParamsChange }: UserManagementProps) {
   const { toast } = useToast();
-  const [editingUser, setEditingUser] = useState<EditingUser | null>(null);
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
-  const [editedRole, setEditedRole] = useState<string>("");
-  const [editedStatus, setEditedStatus] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>(data.filters.status[0] ?? "");
+  const [searchTerm, setSearchTerm] = useState(params.searchTerm ?? "");
+  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 500);
+  const { mutateAsync: blockUser, isPending: isBlockingUser } = useBlockUser();
+  const { mutateAsync: unblockUser, isPending: isUnblockingUser } = useUnblockUser();
+  const activeStatus = params.status ?? "";
+  const currentPage = data.pagination.page;
+  const totalPages = data.pagination.totalPage;
 
-  const handleEditOpen = (userId: string) => {
-    const user = data.users.find((u) => u.id === userId);
-    if (user) {
-      setEditingUser({
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        status: user.status
-      });
-      setEditedRole(user.role);
-      setEditedStatus(user.status);
+  useEffect(() => {
+    if ((params.searchTerm ?? "") === debouncedSearchTerm) {
+      return;
     }
+
+    onParamsChange({
+      ...params,
+      searchTerm: debouncedSearchTerm,
+      page: 1
+    });
+  }, [debouncedSearchTerm, onParamsChange, params]);
+
+  const stats = useMemo(
+    () => [
+      { id: "total", title: "Total Users", value: String(data.pagination.total) },
+      {
+        id: "active",
+        title: "Active Users",
+        value: String(data.data.filter((user) => user.status === "ACTIVE").length)
+      },
+      {
+        id: "restricted",
+        title: "Restricted",
+        value: String(data.data.filter((user) => user.status === "RESTRICTED").length)
+      },
+      {
+        id: "verified",
+        title: "Verified",
+        value: String(data.data.filter((user) => user.verified).length)
+      }
+    ],
+    [data.data, data.pagination.total]
+  );
+
+  const handleStatusChange = (status: string) => {
+    onParamsChange({ ...params, status: status as UserManageStatus | "", page: 1 });
   };
 
-  const handleEditSave = () => {
-    if (editingUser) {
+  const handlePageChange = (page: number) => {
+    onParamsChange({ ...params, page });
+  };
+
+  const handleToggleBlock = async (userId: string, status: UserManageStatus) => {
+    const shouldUnblock = status === "RESTRICTED";
+
+    try {
+      if (shouldUnblock) {
+        await unblockUser({ userId });
+      } else {
+        await blockUser({ userId });
+      }
+
       toast({
         title: "Success",
-        description: `${editingUser.name} has been updated successfully. Role: ${editedRole}, Status: ${editedStatus}`,
+        description: shouldUnblock ? "User unblocked successfully." : "User blocked successfully.",
         variant: "default"
       });
-      setEditingUser(null);
+    } catch {
+      toast({
+        title: "Something went wrong",
+        description: "Unable to update user status. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
-  const handleDeleteConfirm = () => {
-    const user = data.users.find((u) => u.id === deleteUserId);
-    if (user) {
-      toast({
-        title: "Success",
-        description: `User ${user.name} has been deleted successfully.`,
-        variant: "default"
-      });
-    }
-    setDeleteUserId(null);
-  };
+  const activeStatusLabel =
+    STATUS_OPTIONS.find((option) => option.value === activeStatus)?.label ?? "All";
+  const isMutating = isBlockingUser || isUnblockingUser;
 
   return (
     <div className="flex flex-col gap-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">{data.heading.title}</h1>
-        <p className="text-sm text-muted-foreground">{data.heading.subtitle}</p>
+        <h1 className="text-2xl font-semibold text-foreground">User Management</h1>
+        <p className="text-sm text-muted-foreground">Manage and monitor all platform users</p>
       </header>
 
       <Card className="m-0 border-none bg-white p-0 shadow-none">
@@ -118,6 +165,8 @@ export default function UserManagement({ data }: UserManagementProps) {
             <div className="relative w-full lg:max-w-sm">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search by name or email..."
                 className="bg-white pl-9"
                 aria-label="Search users"
@@ -130,15 +179,15 @@ export default function UserManagement({ data }: UserManagementProps) {
                     <span className="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-muted-foreground">
                       <Filter className="h-3 w-3" />
                     </span>
-                    {statusFilter || "Filter status"}
+                    {activeStatusLabel}
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                    {data.filters.status.map((status) => (
-                      <DropdownMenuRadioItem key={status} value={status}>
-                        {status}
+                  <DropdownMenuRadioGroup value={activeStatus} onValueChange={handleStatusChange}>
+                    {STATUS_OPTIONS.map((option) => (
+                      <DropdownMenuRadioItem key={option.value || "all"} value={option.value}>
+                        {option.label}
                       </DropdownMenuRadioItem>
                     ))}
                   </DropdownMenuRadioGroup>
@@ -153,7 +202,7 @@ export default function UserManagement({ data }: UserManagementProps) {
           </Card>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {data.stats.map((stat) => (
+            {stats.map((stat) => (
               <Card key={stat.id} className="shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -180,15 +229,12 @@ export default function UserManagement({ data }: UserManagementProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.users.map((user) => (
-                    <TableRow key={user.id}>
+                  {data.data.map((user) => (
+                    <TableRow key={user._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="bg-muted" size="sm">
-                            <AvatarImage
-                              src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name.split(" ")[0]}`}
-                              alt={user.name}
-                            />
+                            <AvatarImage src={user.profilePicture} alt={user.name} />
                             <AvatarFallback className="text-xs font-semibold">
                               {getInitials(user.name)}
                             </AvatarFallback>
@@ -210,34 +256,25 @@ export default function UserManagement({ data }: UserManagementProps) {
                         </span>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {user.courses}
+                        {user.enrollmentCount}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {user.lastActive}
+                        {user.lastActiveDate ? formatDate(user.lastActiveDate) : "Never"}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2 text-muted-foreground">
-                          <Link href={`/user-management/${user.id}`}>
+                          <Link href={`/user-management/${user._id}`}>
                             <Button variant="ghost" size="icon-sm" aria-label="View user">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
                           <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Edit user"
-                            onClick={() => handleEditOpen(user.id)}
+                            variant={user.status === "RESTRICTED" ? "default" : "outline"}
+                            size="sm"
+                            disabled={isMutating}
+                            onClick={() => handleToggleBlock(user._id, user.status)}
                           >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Delete user"
-                            className="text-red-500 hover:border-red-500 hover:bg-red-500 hover:text-white"
-                            onClick={() => setDeleteUserId(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
+                            {user.status === "RESTRICTED" ? "Unblock" : "Block"}
                           </Button>
                         </div>
                       </TableCell>
@@ -248,27 +285,38 @@ export default function UserManagement({ data }: UserManagementProps) {
 
               <div className="mt-4 flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                 <span>
-                  Showing {data.pagination.showing} of {data.pagination.total} users
+                  Showing {data.data.length} of {data.pagination.total} users
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage <= 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                  >
                     Previous
                   </Button>
-                  {Array.from({ length: data.pagination.totalPages }).map((_, index) => {
+                  {Array.from({ length: totalPages }).map((_, index) => {
                     const page = index + 1;
-                    const isActive = page === data.pagination.page;
+                    const isActive = page === currentPage;
                     return (
                       <Button
                         key={`page-${page}`}
                         variant={isActive ? "default" : "outline"}
                         size="sm"
                         className={isActive ? "bg-primary text-primary-foreground" : ""}
+                        onClick={() => handlePageChange(page)}
                       >
                         {page}
                       </Button>
                     );
                   })}
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                  >
                     Next
                   </Button>
                 </div>
@@ -277,18 +325,6 @@ export default function UserManagement({ data }: UserManagementProps) {
           </Card>
         </CardContent>
       </Card>
-
-      <UserDialogs
-        editingUser={editingUser}
-        onEditClose={() => setEditingUser(null)}
-        editedStatus={editedStatus}
-        onStatusChange={setEditedStatus}
-        onEditSave={handleEditSave}
-        deleteUserId={deleteUserId}
-        onDeleteClose={() => setDeleteUserId(null)}
-        onDeleteConfirm={handleDeleteConfirm}
-        statuses={data.filters.status}
-      />
     </div>
   );
 }

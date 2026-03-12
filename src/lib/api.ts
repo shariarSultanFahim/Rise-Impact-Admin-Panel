@@ -1,8 +1,26 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
+import type { RefreshTokenResponse } from "@/types/auth";
 import type { AuthSession } from "@/types/auth-session";
 import { AUTH_SESSION_COOKIE } from "@/constants/auth";
 import { env } from "@/env";
+
+import { cookie } from "@/lib/cookie-client";
+
+interface ApiErrorMessage {
+  path?: string;
+  message?: string;
+}
+
+interface ApiErrorResponse {
+  success?: boolean;
+  message?: string;
+  errorMessages?: ApiErrorMessage[];
+}
+
+interface RetriableAxiosRequestConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+}
 
 export const api = axios.create({
   baseURL: env.NEXT_PUBLIC_API_URL,
@@ -12,8 +30,9 @@ export const api = axios.create({
   }
 });
 
+let refreshPromise: Promise<AuthSession | null> | null = null;
+
 api.interceptors.request.use(async (config) => {
-  // FIXME: Inject your auth token/header if required
   const token = await getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
@@ -21,10 +40,43 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (axios.isAxiosError(err)) return Promise.reject(err);
+  async (err) => {
+    if (!axios.isAxiosError<ApiErrorResponse>(err)) {
+      return Promise.reject(new AxiosError("Unknown error"));
+    }
 
-    return Promise.reject(new AxiosError("Bilinmeyen hata"));
+    const originalRequest = err.config as RetriableAxiosRequestConfig | undefined;
+
+    if (!originalRequest) {
+      return Promise.reject(err);
+    }
+
+    if (originalRequest.url?.includes("/auth/refresh-token")) {
+      return Promise.reject(err);
+    }
+
+    if (originalRequest._retry || !isInvalidTokenError(err)) {
+      return Promise.reject(err);
+    }
+
+    originalRequest._retry = true;
+
+    if (!refreshPromise) {
+      refreshPromise = refreshAuthSession().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const refreshedSession = await refreshPromise;
+
+    if (!refreshedSession?.accessToken) {
+      return Promise.reject(err);
+    }
+
+    originalRequest.headers = originalRequest.headers ?? {};
+    originalRequest.headers.Authorization = `Bearer ${refreshedSession.accessToken}`;
+
+    return api(originalRequest);
   }
 );
 
@@ -82,21 +134,75 @@ const parseSession = (raw: string): AuthSession | null => {
 };
 
 const getCookieValue = (name: string): string | null => {
-  if (typeof document === "undefined") {
+  return cookie.get(name);
+};
+
+const setCookieValue = (name: string, value: string): void => {
+  cookie.set(name, value);
+};
+
+const removeCookieValue = (name: string): void => {
+  cookie.remove(name);
+};
+
+const isInvalidTokenError = (error: AxiosError<ApiErrorResponse>): boolean => {
+  const message = error.response?.data?.message?.toLowerCase();
+  if (message === "invalid token") {
+    return true;
+  }
+
+  return (
+    error.response?.data?.errorMessages?.some(
+      (errorMessage) => errorMessage.message?.toLowerCase() === "invalid token"
+    ) ?? false
+  );
+};
+
+const refreshAuthSession = async (): Promise<AuthSession | null> => {
+  if (typeof window === "undefined") {
     return null;
   }
 
-  const prefix = `${name}=`;
-  const found = document.cookie
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(prefix));
-
-  if (!found) {
+  const rawSession = getCookieValue(AUTH_SESSION_COOKIE);
+  if (!rawSession) {
     return null;
   }
 
-  return found.slice(prefix.length);
+  const session = parseSession(rawSession);
+  if (!session?.refreshToken) {
+    return null;
+  }
+
+  try {
+    const response = await axios.post<RefreshTokenResponse>(
+      `${env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
+      { refreshToken: session.refreshToken },
+      {
+        headers: {
+          Accept: "application/json"
+        }
+      }
+    );
+
+    const accessToken = response.data.data?.accessToken;
+    const refreshToken = response.data.data?.refreshToken;
+
+    if (!response.data.success || !accessToken || !refreshToken) {
+      removeCookieValue(AUTH_SESSION_COOKIE);
+      return null;
+    }
+
+    const nextSession: AuthSession = {
+      accessToken,
+      refreshToken
+    };
+
+    setCookieValue(AUTH_SESSION_COOKIE, JSON.stringify(nextSession));
+    return nextSession;
+  } catch {
+    removeCookieValue(AUTH_SESSION_COOKIE);
+    return null;
+  }
 };
 
 async function getToken(): Promise<string | null> {

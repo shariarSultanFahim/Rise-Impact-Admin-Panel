@@ -13,7 +13,7 @@ async function NotificationsLoader() {
     getCoursesData(),
     getUserManagementData()
   ]);
-  const students = usersData.users.filter((user) => user.role === "Student");
+  const students = usersData.users.filter((user: { role: string }) => user.role === "Student");
 
   return <NotificationsContent data={data} courses={coursesData.courses} students={students} />;
 }
