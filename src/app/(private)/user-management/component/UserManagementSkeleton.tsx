@@ -20,7 +20,7 @@ export default function UserManagementSkeleton() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 4 }).map((_, index) => (
               <Card key={`stat-${index}`} className="shadow-sm">
                 <CardHeader className="pb-2">

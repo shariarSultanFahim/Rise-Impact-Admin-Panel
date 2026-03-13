@@ -6,13 +6,11 @@ import Link from "next/link";
 import { ChevronDown, Download, Eye, Filter, Search } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 
-import type {
-  UserManageQueryParams,
-  UserManageResponse,
-  UserManageStatus
-} from "@/types/users-manage";
+import type { UserManageQueryParams, UserManageStatus } from "@/types/users-manage";
 
 import { useBlockUser } from "@/lib/api/user/block-user";
+import { useExportUsers } from "@/lib/api/user/export-user";
+import { useGetUsers } from "@/lib/api/user/get-users";
 import { useGetUsersStats } from "@/lib/api/user/stats-user";
 import { useUnblockUser } from "@/lib/api/user/unblock-user";
 import { formatDate } from "@/lib/date";
@@ -39,6 +37,8 @@ import {
   TableRow
 } from "@/components/ui/table";
 
+import UserTableSkeleton from "./UserTableSkeleton";
+
 const STATUS_OPTIONS: Array<{ label: string; value: UserManageStatus | "" }> = [
   { label: "All", value: "" },
   { label: "Active", value: "ACTIVE" },
@@ -47,7 +47,6 @@ const STATUS_OPTIONS: Array<{ label: string; value: UserManageStatus | "" }> = [
 ];
 
 interface UserManagementProps {
-  data: UserManageResponse;
   params: UserManageQueryParams;
   onParamsChange: (params: UserManageQueryParams) => void;
 }
@@ -85,16 +84,18 @@ function growthTextClass(growthType?: "increase" | "decrease" | "no_change") {
   return "text-muted-foreground";
 }
 
-export default function UserManagement({ data, params, onParamsChange }: UserManagementProps) {
+export default function UserManagement({ params, onParamsChange }: UserManagementProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(params.searchTerm ?? "");
   const [debouncedSearchTerm] = useDebounceValue(searchTerm, 500);
+  const { data, isPending: isLoadingUsers } = useGetUsers(params);
   const { mutateAsync: blockUser, isPending: isBlockingUser } = useBlockUser();
   const { mutateAsync: unblockUser, isPending: isUnblockingUser } = useUnblockUser();
+  const { mutateAsync: exportUsers, isPending: isExportingUsers } = useExportUsers();
   const { data: usersStatsResponse } = useGetUsersStats();
   const activeStatus = params.status ?? "";
-  const currentPage = data.pagination.page;
-  const totalPages = data.pagination.totalPage;
+  const currentPage = data?.pagination.page ?? 1;
+  const totalPages = data?.pagination.totalPage ?? 1;
   const usersStats = usersStatsResponse?.data;
 
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
       {
         id: "total",
         title: "Total Users",
-        value: String(usersStats?.totalStudents.total ?? data.pagination.total),
+        value: String(usersStats?.totalStudents.total ?? data?.pagination.total ?? 0),
         trend: usersStats?.totalStudents.formattedGrowth,
         growthType: usersStats?.totalStudents.growthType
       },
@@ -123,7 +124,8 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
         title: "Active Users",
         value: String(
           usersStats?.activeStudents.total ??
-            data.data.filter((user) => user.status === "ACTIVE").length
+            data?.data.filter((user) => user.status === "ACTIVE").length ??
+            0
         ),
         trend: usersStats?.activeStudents.formattedGrowth,
         growthType: usersStats?.activeStudents.growthType
@@ -131,19 +133,12 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
       {
         id: "restricted",
         title: "Restricted",
-        value: String(data.data.filter((user) => user.status === "RESTRICTED").length),
-        trend: undefined,
-        growthType: undefined
-      },
-      {
-        id: "verified",
-        title: "Verified",
-        value: String(data.data.filter((user) => user.verified).length),
+        value: String(data?.data.filter((user) => user.status === "RESTRICTED").length ?? 0),
         trend: undefined,
         growthType: undefined
       }
     ],
-    [data.data, data.pagination.total, usersStats]
+    [data?.data, data?.pagination.total, usersStats]
   );
 
   const handleStatusChange = (status: string) => {
@@ -178,6 +173,33 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
     }
   };
 
+  const handleExportUsers = async () => {
+    try {
+      const { blob, fileName } = await exportUsers();
+
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = fileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Users exported successfully.",
+        variant: "default"
+      });
+    } catch {
+      toast({
+        title: "Something went wrong",
+        description: "Unable to export users. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const activeStatusLabel =
     STATUS_OPTIONS.find((option) => option.value === activeStatus)?.label ?? "All";
   const isMutating = isBlockingUser || isUnblockingUser;
@@ -191,7 +213,7 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
 
       <Card className="m-0 border-none bg-white p-0 shadow-none">
         <CardContent className="space-y-5 p-0">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {stats.map((stat) => (
               <Card key={stat.id} className="shadow-sm">
                 <CardHeader className="pb-2">
@@ -211,152 +233,161 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
             ))}
           </div>
 
-          <Card className="flex flex-col gap-3 px-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative w-full lg:max-w-sm">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by name or email..."
-                className="bg-white pl-9"
-                aria-label="Search users"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2 border-primary bg-white">
-                    <span className="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-muted-foreground">
-                      <Filter className="h-3 w-3" />
-                    </span>
-                    {activeStatusLabel}
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuRadioGroup value={activeStatus} onValueChange={handleStatusChange}>
-                    {STATUS_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem key={option.value || "all"} value={option.value}>
-                        {option.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button variant="default" className="gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-            </div>
-          </Card>
-
           <Card className="shadow-sm">
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Courses</TableHead>
-                    <TableHead>Last Active</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.data.map((user) => (
-                    <TableRow key={user._id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="bg-muted" size="sm">
-                            <AvatarImage src={user.profilePicture} alt={user.name} />
-                            <AvatarFallback className="text-xs font-semibold">
-                              {getInitials(user.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{user.name}</p>
-                            <p className="text-xs text-muted-foreground">{user.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadgeClass(
-                            user.status
-                          )}`}
-                        >
-                          {user.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {user.enrollmentCount}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {user.lastActiveDate ? formatDate(user.lastActiveDate) : "Never"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2 text-muted-foreground">
-                          <Link href={`/user-management/${user._id}`}>
-                            <Button variant="ghost" size="icon-sm" aria-label="View user">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Button
-                            variant={user.status === "RESTRICTED" ? "default" : "outline"}
-                            size="sm"
-                            disabled={isMutating}
-                            onClick={() => handleToggleBlock(user._id, user.status)}
-                          >
-                            {user.status === "RESTRICTED" ? "Unblock" : "Block"}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              <div className="mt-4 flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                <span>
-                  Showing {data.data.length} of {data.pagination.total} users
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage <= 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
-                  >
-                    Previous
-                  </Button>
-                  {Array.from({ length: totalPages }).map((_, index) => {
-                    const page = index + 1;
-                    const isActive = page === currentPage;
-                    return (
-                      <Button
-                        key={`page-${page}`}
-                        variant={isActive ? "default" : "outline"}
-                        size="sm"
-                        className={isActive ? "bg-primary text-primary-foreground" : ""}
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage >= totalPages}
-                    onClick={() => handlePageChange(currentPage + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+            <div className="flex flex-col gap-3 px-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full lg:max-w-sm">
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search by name or email..."
+                  className="bg-white pl-9"
+                  aria-label="Search users"
+                />
               </div>
-            </CardContent>
+              <div className="flex flex-wrap items-center gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2 border-primary bg-white">
+                      <span className="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-muted-foreground">
+                        <Filter className="h-3 w-3" />
+                      </span>
+                      {activeStatusLabel}
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuRadioGroup value={activeStatus} onValueChange={handleStatusChange}>
+                      {STATUS_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option.value || "all"} value={option.value}>
+                          {option.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="default"
+                  className="gap-2"
+                  onClick={handleExportUsers}
+                  disabled={isExportingUsers}
+                >
+                  <Download className="h-4 w-4" />
+                  {isExportingUsers ? "Exporting..." : "Export"}
+                </Button>
+              </div>
+            </div>
+
+            {isLoadingUsers ? (
+              <UserTableSkeleton />
+            ) : (
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Courses</TableHead>
+                      <TableHead>Last Active</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.data?.map((user) => (
+                      <TableRow key={user._id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="bg-muted" size="sm">
+                              <AvatarImage src={user.profilePicture} alt={user.name} />
+                              <AvatarFallback className="text-xs font-semibold">
+                                {getInitials(user.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{user.name}</p>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadgeClass(
+                              user.status
+                            )}`}
+                          >
+                            {user.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {user.enrollmentCount}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {user.lastActiveDate ? formatDate(user.lastActiveDate) : "Never"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-2 text-muted-foreground">
+                            <Link href={`/user-management/${user._id}`}>
+                              <Button variant="ghost" size="icon-sm" aria-label="View user">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant={user.status === "RESTRICTED" ? "default" : "outline"}
+                              size="sm"
+                              disabled={isMutating}
+                              onClick={() => handleToggleBlock(user._id, user.status)}
+                            >
+                              {user.status === "RESTRICTED" ? "Unblock" : "Block"}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <span>
+                    Showing {data?.data.length ?? 0} of {data?.pagination.total ?? 0} users
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage <= 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      Previous
+                    </Button>
+                    {Array.from({ length: totalPages }).map((_, index) => {
+                      const page = index + 1;
+                      const isActive = page === currentPage;
+                      return (
+                        <Button
+                          key={`page-${page}`}
+                          variant={isActive ? "default" : "outline"}
+                          size="sm"
+                          className={isActive ? "bg-primary text-primary-foreground" : ""}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            )}
           </Card>
         </CardContent>
       </Card>
