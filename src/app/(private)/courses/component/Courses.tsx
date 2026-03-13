@@ -96,7 +96,20 @@ export default function Courses({ data, params, onParamsChange }: CoursesProps) 
           </Link>
         </Button>
       </header>
-
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.id} className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       <Card className="shadow-sm">
         <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
@@ -133,21 +146,6 @@ export default function Courses({ data, params, onParamsChange }: CoursesProps) 
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.id} className="shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {data.data.map((course) => (

@@ -13,6 +13,7 @@ import type {
 } from "@/types/users-manage";
 
 import { useBlockUser } from "@/lib/api/user/block-user";
+import { useGetUsersStats } from "@/lib/api/user/stats-user";
 import { useUnblockUser } from "@/lib/api/user/unblock-user";
 import { formatDate } from "@/lib/date";
 
@@ -72,15 +73,29 @@ function statusBadgeClass(status: string) {
   return "bg-muted text-muted-foreground";
 }
 
+function growthTextClass(growthType?: "increase" | "decrease" | "no_change") {
+  if (growthType === "increase") {
+    return "text-emerald-600";
+  }
+
+  if (growthType === "decrease") {
+    return "text-red-600";
+  }
+
+  return "text-muted-foreground";
+}
+
 export default function UserManagement({ data, params, onParamsChange }: UserManagementProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(params.searchTerm ?? "");
   const [debouncedSearchTerm] = useDebounceValue(searchTerm, 500);
   const { mutateAsync: blockUser, isPending: isBlockingUser } = useBlockUser();
   const { mutateAsync: unblockUser, isPending: isUnblockingUser } = useUnblockUser();
+  const { data: usersStatsResponse } = useGetUsersStats();
   const activeStatus = params.status ?? "";
   const currentPage = data.pagination.page;
   const totalPages = data.pagination.totalPage;
+  const usersStats = usersStatsResponse?.data;
 
   useEffect(() => {
     if ((params.searchTerm ?? "") === debouncedSearchTerm) {
@@ -96,24 +111,39 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
 
   const stats = useMemo(
     () => [
-      { id: "total", title: "Total Users", value: String(data.pagination.total) },
+      {
+        id: "total",
+        title: "Total Users",
+        value: String(usersStats?.totalStudents.total ?? data.pagination.total),
+        trend: usersStats?.totalStudents.formattedGrowth,
+        growthType: usersStats?.totalStudents.growthType
+      },
       {
         id: "active",
         title: "Active Users",
-        value: String(data.data.filter((user) => user.status === "ACTIVE").length)
+        value: String(
+          usersStats?.activeStudents.total ??
+            data.data.filter((user) => user.status === "ACTIVE").length
+        ),
+        trend: usersStats?.activeStudents.formattedGrowth,
+        growthType: usersStats?.activeStudents.growthType
       },
       {
         id: "restricted",
         title: "Restricted",
-        value: String(data.data.filter((user) => user.status === "RESTRICTED").length)
+        value: String(data.data.filter((user) => user.status === "RESTRICTED").length),
+        trend: undefined,
+        growthType: undefined
       },
       {
         id: "verified",
         title: "Verified",
-        value: String(data.data.filter((user) => user.verified).length)
+        value: String(data.data.filter((user) => user.verified).length),
+        trend: undefined,
+        growthType: undefined
       }
     ],
-    [data.data, data.pagination.total]
+    [data.data, data.pagination.total, usersStats]
   );
 
   const handleStatusChange = (status: string) => {
@@ -161,6 +191,26 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
 
       <Card className="m-0 border-none bg-white p-0 shadow-none">
         <CardContent className="space-y-5 p-0">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {stats.map((stat) => (
+              <Card key={stat.id} className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                  {stat.trend ? (
+                    <p className={`mt-1 text-xs ${growthTextClass(stat.growthType)}`}>
+                      {stat.trend} vs previous period
+                    </p>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
           <Card className="flex flex-col gap-3 px-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative w-full lg:max-w-sm">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -200,21 +250,6 @@ export default function UserManagement({ data, params, onParamsChange }: UserMan
               </Button>
             </div>
           </Card>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {stats.map((stat) => (
-              <Card key={stat.id} className="shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
 
           <Card className="shadow-sm">
             <CardContent>
