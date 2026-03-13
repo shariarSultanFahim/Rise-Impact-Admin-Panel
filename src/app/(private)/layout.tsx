@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 import { withLayout, withPrivateRoute } from "@/helpers/with-route-guard";
 
-import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Separator } from "@/components/ui";
 import { DynamicBreadcrumb } from "@/components/ui/dynamic-breadcrumb";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/app/(private)/app-sidebar";
 
 function PrivateShell({ children }: { children: ReactNode }) {
   return (

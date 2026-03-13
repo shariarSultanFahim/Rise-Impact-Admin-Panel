@@ -20,9 +20,11 @@ import {
   Scale,
   UserRoundPen
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { AUTH_SESSION_COOKIE } from "@/constants/auth";
 
+import { useGetUsersProfile } from "@/lib/api/profile/get-profile";
 import { cookie } from "@/lib/cookie-client";
 
 import {
@@ -39,7 +41,7 @@ import {
   SidebarRail
 } from "@/components/ui/sidebar";
 
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 
 const data = {
   info: {
@@ -137,6 +139,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     cookie.remove(AUTH_SESSION_COOKIE);
   };
 
+  const getUsersProfileQuery = useGetUsersProfile();
+
+  React.useEffect(() => {
+    if (getUsersProfileQuery.isError) {
+      toast.error("Unable to load profile data.");
+    }
+  }, [getUsersProfileQuery.isError]);
+
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -185,42 +195,49 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       {/* <Separator /> */}
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem className="space-y-5">
-            <div className="hidden flex-col gap-4 group-data-[collapsible=icon]:flex">
-              <Avatar size="lg" className="h-8 w-8">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="group-data-[collapsible=icon]:hidden">
-              <div className="flex items-center justify-start gap-4">
-                <Avatar size="lg">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>JD</AvatarFallback>
+      {getUsersProfileQuery.data && (
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem className="space-y-5">
+              <div className="hidden flex-col gap-4 group-data-[collapsible=icon]:flex">
+                <Avatar size="lg" className="h-8 w-8">
+                  <AvatarImage src={getUsersProfileQuery.data.profilePicture} />
+                  <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
-                <div>
-                  <h2 className="font-semibold">Rodney Bremby</h2>
-                  <h3 className="text-sm text-white/30">rodney@riseimpact.com</h3>
+              </div>
+              <div className="group-data-[collapsible=icon]:hidden">
+                <div className="flex items-center justify-start gap-4">
+                  <Avatar size="lg">
+                    <AvatarImage src={getUsersProfileQuery.data.profilePicture} />
+                    <AvatarFallback>
+                      {getUsersProfileQuery.data.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h2 className="font-semibold">{getUsersProfileQuery.data.name}</h2>
+                    <h3 className="text-sm text-white/30">{getUsersProfileQuery.data.email}</h3>
+                  </div>
                 </div>
               </div>
-            </div>
-            <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Link
-                href="/login"
-                onClick={handleSignOut}
-                className="h-10 w-full border border-secondary bg-transparent group-data-[collapsible=icon]:p-0 hover:border-white/20 hover:bg-white/25 hover:text-primary-foreground hover:shadow-md hover:backdrop-blur-sm"
-              >
-                <button className="flex w-full items-center justify-center gap-2 border-none">
-                  <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
-                  <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
-                </button>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+              <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
+                <Link
+                  href="/login"
+                  onClick={handleSignOut}
+                  className="h-10 w-full border border-secondary bg-transparent group-data-[collapsible=icon]:p-0 hover:border-white/20 hover:bg-white/25 hover:text-primary-foreground hover:shadow-md hover:backdrop-blur-sm"
+                >
+                  <button className="flex w-full items-center justify-center gap-2 border-none">
+                    <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
+                    <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
+                  </button>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
       <SidebarRail />
     </Sidebar>
   );
