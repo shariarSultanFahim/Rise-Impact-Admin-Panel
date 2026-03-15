@@ -6,6 +6,9 @@ import Link from "next/link";
 import { ChevronDown, Filter, Plus, Search } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 
+import { useGetCourses } from "@/lib/api/courses/get-courses";
+
+import Pagination from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,6 +22,12 @@ import { Input } from "@/components/ui/input";
 import type { CourseManageQueryParams, CourseManageResponse, CourseManageStatus } from "@/types";
 
 import CourseCard from "./CourseCard";
+import {
+  CoursesGridSkeleton,
+  CoursesHeaderSkeleton,
+  CoursesPaginationSkeleton,
+  CoursesStatsSkeleton
+} from "./CoursesSkeleton";
 
 const STATUS_OPTIONS: Array<{ label: string; value: CourseManageStatus | "" }> = [
   { label: "All", value: "" },
@@ -29,17 +38,21 @@ const STATUS_OPTIONS: Array<{ label: string; value: CourseManageStatus | "" }> =
 ];
 
 interface CoursesProps {
-  data: CourseManageResponse;
+  data?: CourseManageResponse;
+  isLoading?: boolean;
   params: CourseManageQueryParams;
   onParamsChange: (params: CourseManageQueryParams) => void;
 }
 
-export default function Courses({ data, params, onParamsChange }: CoursesProps) {
+export default function Courses({ data, isLoading = false, params, onParamsChange }: CoursesProps) {
   const [searchTerm, setSearchTerm] = useState(params.searchTerm ?? "");
   const [debouncedSearchTerm] = useDebounceValue(searchTerm, 600);
   const activeStatus = params.status ?? "";
-  const currentPage = data.pagination.page;
-  const totalPages = data.pagination.totalPage;
+  const courseItems = data?.data ?? [];
+  const totalCourses = data?.pagination.total ?? 0;
+  const currentPage = data?.pagination.page ?? params.page ?? 1;
+  const totalPages = data?.pagination.totalPage ?? 1;
+  const { data: courseStatsData, isPending: courseStatsPending } = useGetCourses({ limit: 10000 });
 
   useEffect(() => {
     if ((params.searchTerm ?? "") === debouncedSearchTerm) {
@@ -50,21 +63,21 @@ export default function Courses({ data, params, onParamsChange }: CoursesProps) 
   }, [debouncedSearchTerm, onParamsChange, params]);
 
   const stats = [
-    { id: "total", title: "Total Courses", value: String(data.pagination.total) },
+    { id: "total", title: "Total Courses", value: String(totalCourses) },
     {
       id: "published",
       title: "Published",
-      value: String(data.data.filter((c) => c.status === "PUBLISHED").length)
+      value: String(courseStatsData?.data?.filter((c) => c.status === "PUBLISHED").length)
     },
     {
       id: "draft",
       title: "Drafts",
-      value: String(data.data.filter((c) => c.status === "DRAFT").length)
+      value: String(courseStatsData?.data?.filter((c) => c.status === "DRAFT").length)
     },
     {
       id: "enrolled",
       title: "Total Enrolled",
-      value: String(data.data.reduce((sum, c) => sum + c.enrollmentCount, 0))
+      value: String(courseStatsData?.data?.reduce((sum, c) => sum + c.enrollmentCount, 0))
     }
   ];
 
@@ -84,32 +97,42 @@ export default function Courses({ data, params, onParamsChange }: CoursesProps) 
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-foreground">Courses</h1>
-          <p className="text-sm text-muted-foreground">Manage and track all your courses</p>
+      {isLoading ? (
+        <CoursesHeaderSkeleton />
+      ) : (
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold text-foreground">Courses</h1>
+            <p className="text-sm text-muted-foreground">Manage and track all your courses</p>
+          </div>
+          <Button asChild className="gap-2">
+            <Link href="/courses/create">
+              <Plus className="h-4 w-4" />
+              Create New Course
+            </Link>
+          </Button>
+        </header>
+      )}
+
+      {courseStatsPending ? (
+        <CoursesStatsSkeleton />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <Card key={stat.id} className="shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        <Button asChild className="gap-2">
-          <Link href="/courses/create">
-            <Plus className="h-4 w-4" />
-            Create New Course
-          </Link>
-        </Button>
-      </header>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.id} className="shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      )}
+
       <Card className="shadow-sm">
         <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
@@ -147,50 +170,30 @@ export default function Courses({ data, params, onParamsChange }: CoursesProps) 
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {data.data.map((course) => (
-          <CourseCard key={course._id} course={course} />
-        ))}
-      </div>
-
-      <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <span>
-          Showing {data.data.length} of {data.pagination.total} courses
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage <= 1}
-            onClick={() => handlePageChange(currentPage - 1)}
-          >
-            Previous
-          </Button>
-          {Array.from({ length: totalPages }).map((_, index) => {
-            const page = index + 1;
-            const isActive = page === currentPage;
-            return (
-              <Button
-                key={`page-${page}`}
-                variant={isActive ? "default" : "outline"}
-                size="sm"
-                className={isActive ? "bg-primary text-primary-foreground" : ""}
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </Button>
-            );
-          })}
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage >= totalPages}
-            onClick={() => handlePageChange(currentPage + 1)}
-          >
-            Next
-          </Button>
+      {isLoading ? (
+        <CoursesGridSkeleton />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {courseItems.map((course) => (
+            <CourseCard key={course._id} course={course} />
+          ))}
         </div>
-      </div>
+      )}
+
+      {isLoading ? (
+        <CoursesPaginationSkeleton />
+      ) : (
+        <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Showing {courseItems.length} of {totalCourses} courses
+          </span>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 }

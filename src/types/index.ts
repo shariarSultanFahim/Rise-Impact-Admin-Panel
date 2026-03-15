@@ -53,11 +53,25 @@ export type {
 } from "./create-course";
 export type { DataTableProps } from "./data-table";
 export type {
-  DiscussionMessage,
-  DiscussionThreadItem,
-  DiscussionsData,
-  DiscussionsHeading,
-  DiscussionsPagination
+  DiscussionAuthor,
+  DiscussionAuthorRole,
+  DiscussionCourseOption,
+  DiscussionCourseOptionsResponse,
+  DiscussionDeleteResponse,
+  DiscussionPagination,
+  DiscussionPost,
+  DiscussionPostDetail,
+  DiscussionPostDetailResponse,
+  DiscussionPostsResponse,
+  DiscussionQueryParams,
+  DiscussionReply,
+  DiscussionReplyChild,
+  DiscussionReplyCreated,
+  DiscussionReplyPayload,
+  DiscussionReplyResponse,
+  DiscussionReplyUpdatePayload,
+  DiscussionReplyUpdateResponse,
+  DiscussionReplyUpdated
 } from "./discussions";
 export type {
   CreateFeedbackInput,

@@ -17,6 +17,7 @@ import { formatDate } from "@/lib/date";
 
 import { useToast } from "@/hooks/use-toast";
 
+import Pagination from "@/components/pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -352,39 +353,11 @@ export default function UserManagement({ params, onParamsChange }: UserManagemen
                   <span>
                     Showing {data?.data.length ?? 0} of {data?.pagination.total ?? 0} users
                   </span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage <= 1}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                    >
-                      Previous
-                    </Button>
-                    {Array.from({ length: totalPages }).map((_, index) => {
-                      const page = index + 1;
-                      const isActive = page === currentPage;
-                      return (
-                        <Button
-                          key={`page-${page}`}
-                          variant={isActive ? "default" : "outline"}
-                          size="sm"
-                          className={isActive ? "bg-primary text-primary-foreground" : ""}
-                          onClick={() => handlePageChange(page)}
-                        >
-                          {page}
-                        </Button>
-                      );
-                    })}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage >= totalPages}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </div>
               </CardContent>
             )}
