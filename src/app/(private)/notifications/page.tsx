@@ -1,29 +1,11 @@
-import { Suspense } from "react";
+"use client";
 
-import { getCoursesData } from "@/data/courses";
-import { getNotificationsData } from "@/data/notifications";
-import { getUserManagementData } from "@/data/user-management";
-
-import NotificationsContent from "./component/NotificationsContent";
-import NotificationsSkeleton from "./component/NotificationsSkeleton";
-
-async function NotificationsLoader() {
-  const [data, coursesData, usersData] = await Promise.all([
-    getNotificationsData(),
-    getCoursesData(),
-    getUserManagementData()
-  ]);
-  const students = usersData.users.filter((user: { role: string }) => user.role === "Student");
-
-  return <NotificationsContent data={data} courses={coursesData.courses} students={students} />;
-}
+import { NotificationsContent } from "./component";
 
 export default function NotificationsPage() {
   return (
     <section className="flex flex-col gap-6">
-      <Suspense fallback={<NotificationsSkeleton />}>
-        <NotificationsLoader />
-      </Suspense>
+      <NotificationsContent />
     </section>
   );
 }

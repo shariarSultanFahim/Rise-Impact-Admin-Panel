@@ -112,9 +112,15 @@ export type {
 } from "./gradebook";
 export type {
   NotificationAudience,
+  NotificationPagination,
+  NotificationQueryParams,
   NotificationTemplate,
   NotificationsData,
-  NotificationsHeading
+  NotificationsHeading,
+  SendNotificationPayload,
+  SendNotificationResponse,
+  SentNotificationHistoryResponse,
+  SentNotificationItem
 } from "./notifications";
 export type { OverviewData, OverviewIconKey } from "./overview";
 export type { UpdateCoursePayload, UpdateCourseResponse } from "./update-course";

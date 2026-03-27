@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { BookOpenIcon, EyeIcon, SendIcon, UserIcon, UsersIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import type { CourseCardItem } from "@/types/courses";
-import type { NotificationsData } from "@/types/notifications";
+import { useGetNotificationCourseOptions } from "@/lib/api/notifications/get-course-options";
+import { useGetSentNotifications } from "@/lib/api/notifications/get-sent-notifications";
+import { useSendNotification } from "@/lib/api/notifications/send-notification";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -23,280 +23,271 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import type { NotificationQueryParams, SendNotificationPayload } from "@/types";
 
-import { NotificationFormData, notificationSchema } from "../schema/notification.schema";
-import NotificationModal from "./NotificationModal";
+import type { NotificationFormData } from "../schema/notification.schema";
+import { notificationSchema } from "../schema/notification.schema";
+import SentHistoryTable from "./SentHistoryTable";
 
-type NotificationsContentProps = {
-  data: NotificationsData;
-  courses: CourseCardItem[];
-  students: unknown[];
-};
+const TEXT_LIMIT = 5000;
 
-const audienceIcons = {
-  "all-students": UsersIcon,
-  "specific-course": BookOpenIcon,
-  "individual-student": UserIcon
-};
+export default function NotificationsContent() {
+  const [historyParams, setHistoryParams] = useState<NotificationQueryParams>({
+    page: 1,
+    limit: 10,
+    sort: "-createdAt"
+  });
 
-const MESSAGE_LIMIT = 500;
-
-export default function NotificationsContent({
-  data,
-  courses,
-  students
-}: NotificationsContentProps) {
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [courseSearch, setCourseSearch] = useState("");
-
+  // Initialize form
   const form = useForm<NotificationFormData>({
     resolver: zodResolver(notificationSchema),
     defaultValues: {
       title: "",
-      message: "",
-      audience: data.audiences[0]?.id ?? "",
+      text: "",
+      audience: "all",
       courseId: ""
     }
   });
 
-  const titleValue = useWatch({
-    control: form.control,
-    name: "title"
-  });
-  const messageValue = useWatch({
-    control: form.control,
-    name: "message"
-  });
-  const audienceValue = useWatch({
-    control: form.control,
-    name: "audience"
-  });
-  const courseIdValue = useWatch({
-    control: form.control,
-    name: "courseId"
-  });
+  // API calls
+  const { mutate: sendNotification, isPending: isSending } = useSendNotification();
 
-  const messageCount = messageValue?.length ?? 0;
-  const selectedAudience = data.audiences.find((audience) => audience.id === audienceValue);
-  const selectedCourse = courses.find((course) => course.id === courseIdValue);
-  const previewTitle = titleValue?.trim() || "Your Title Here";
-  const previewMessage = messageValue?.trim() || "Your message will appear here...";
-  const previewAudience = selectedAudience?.title ?? "Select an audience";
-  const previewAudienceDetail =
-    audienceValue === "specific-course" && selectedCourse
-      ? `Specific Course: ${selectedCourse.title}`
-      : previewAudience;
+  const { data: courseOptionsResponse, isPending: isCoursePending } =
+    useGetNotificationCourseOptions();
 
-  const courseSearchValue = courseSearch.trim().toLowerCase();
-  const filteredCourses = courses.filter((course) =>
-    course.title.toLowerCase().includes(courseSearchValue)
-  );
+  const { data: historyResponse, isPending: isHistoryPending } =
+    useGetSentNotifications(historyParams);
 
-  useEffect(() => {
-    if (audienceValue !== "specific-course" && form.getValues("courseId")) {
-      form.setValue("courseId", "", { shouldValidate: true });
-    }
-  }, [audienceValue, form]);
+  // Extract data from responses
+  const courseOptions = courseOptionsResponse?.data ?? [];
+  const sentNotifications = historyResponse?.data ?? [];
+  const pagination = historyResponse?.pagination;
 
+  // Get form values
+  const audienceValue = form.watch("audience");
+  const textValue = form.watch("text");
+  const textCount = textValue?.length ?? 0;
+
+  // Handle form submission
   const onSubmit = async (values: NotificationFormData) => {
-    try {
-      // TODO: Replace with API call once notifications endpoint is ready.
-      await Promise.resolve(values);
-      toast.success("Notification is ready to send.");
-      form.reset();
-    } catch {
-      toast.error("Unable to send notification. Try again.");
-    }
+    const payload: SendNotificationPayload = {
+      title: values.title,
+      text: values.text,
+      audience: values.audience as "all" | "course",
+      ...(values.audience === "course" && { courseId: values.courseId })
+    };
+
+    sendNotification(payload, {
+      onSuccess: (response) => {
+        const recipientCount = response?.data?.recipientCount ?? 0;
+        toast.success(
+          `Notification sent to ${recipientCount} student${recipientCount !== 1 ? "s" : ""}`
+        );
+        form.reset();
+        // Refresh history
+        setHistoryParams((prev) => ({ ...prev, page: 1 }));
+      },
+      onError: (error: unknown) => {
+        let errorMessage = "Failed to send notification. Try again.";
+        if (
+          error &&
+          typeof error === "object" &&
+          "response" in error &&
+          error.response &&
+          typeof error.response === "object" &&
+          "data" in error.response &&
+          error.response.data &&
+          typeof error.response.data === "object" &&
+          "message" in error.response.data &&
+          typeof error.response.data.message === "string"
+        ) {
+          errorMessage = error.response.data.message;
+        }
+        toast.error(errorMessage);
+      }
+    });
+  };
+
+  // Handle history page change
+  const handleHistoryPageChange = (page: number) => {
+    setHistoryParams((prev) => ({ ...prev, page }));
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{data.heading.title}</h1>
-        <p className="text-muted-foreground">{data.heading.subtitle}</p>
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold text-foreground">Send Notification</h1>
+        <p className="text-sm text-muted-foreground">
+          Communicate with your students via notifications
+        </p>
       </div>
 
+      {/* Form Section */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="">
-            <div className="flex flex-col gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Compose Message</CardTitle>
-                  <CardDescription>Write a concise update for your students.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notification Title</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="bg-white"
-                            placeholder="Enter a clear, concise title"
-                            autoComplete="off"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          {/* Compose Message Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Compose Message</CardTitle>
+              <CardDescription>Write a concise update for your students.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Title Field */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notification Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="bg-white"
+                        placeholder="Enter a clear, concise title"
+                        autoComplete="off"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Write your message here..."
-                            className="min-h-[160px] bg-white"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription className="text-xs">
-                          {messageCount} / {MESSAGE_LIMIT} characters
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+              {/* Text Field */}
+              <FormField
+                control={form.control}
+                name="text"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Write your message here..."
+                        className="min-h-[160px] bg-white"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      {textCount} / {TEXT_LIMIT} characters
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Target Audience</CardTitle>
-                  <CardDescription>Choose who should receive this notification.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="audience"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Audience</FormLabel>
-                        <div className="space-y-3">
-                          {data.audiences.map((audience) => {
-                            const Icon =
-                              audienceIcons[audience.id as keyof typeof audienceIcons] ?? UsersIcon;
-                            const isSelected = field.value === audience.id;
-
-                            return (
-                              <label
-                                key={audience.id}
-                                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-white p-4 transition-colors hover:border-primary/50"
-                              >
-                                <Checkbox
-                                  checked={isSelected}
-                                  onCheckedChange={() => field.onChange(audience.id)}
-                                />
-                                <div className="flex flex-1 items-center gap-3">
-                                  <Icon className="size-6 text-muted-foreground" />
-                                  <div className="space-y-1">
-                                    <p className="text-sm font-medium">{audience.title}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {audience.description}
-                                    </p>
-                                  </div>
-                                </div>
-                              </label>
-                            );
-                          })}
+          {/* Target Audience Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Target Audience</CardTitle>
+              <CardDescription>Choose who should receive this notification.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="audience"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Audience</FormLabel>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange}>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all" id="audience-all" />
+                          <label htmlFor="audience-all" className="flex cursor-pointer flex-col">
+                            <span className="text-sm font-medium">All Students</span>
+                            <span className="text-xs text-muted-foreground">
+                              Send to all students in the platform
+                            </span>
+                          </label>
                         </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="course" id="audience-course" />
+                          <label htmlFor="audience-course" className="flex cursor-pointer flex-col">
+                            <span className="text-sm font-medium">Specific Course</span>
+                            <span className="text-xs text-muted-foreground">
+                              Send to students enrolled in a course
+                            </span>
+                          </label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  {audienceValue === "specific-course" ? (
-                    <FormField
-                      control={form.control}
-                      name="courseId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Course</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Search courses"
-                              value={courseSearch}
-                              onChange={(event) => setCourseSearch(event.target.value)}
-                              className="bg-white"
-                            />
-                          </FormControl>
-                          <div className="mt-3 max-h-56 overflow-y-auto rounded-lg border border-border bg-white">
-                            {filteredCourses.length === 0 ? (
-                              <p className="px-4 py-3 text-sm text-muted-foreground">
-                                No courses found.
-                              </p>
-                            ) : (
-                              filteredCourses.map((course) => (
-                                <button
-                                  key={course.id}
-                                  type="button"
-                                  onClick={() => {
-                                    field.onChange(course.id);
-                                    setCourseSearch("");
-                                  }}
-                                  className={`flex w-full items-start justify-between px-4 py-3 text-left text-sm transition-colors hover:bg-muted/60 ${
-                                    field.value === course.id
-                                      ? "bg-muted/70 font-medium"
-                                      : "text-foreground"
-                                  }`}
-                                >
-                                  <span>{course.title}</span>
-                                  {field.value === course.id ? (
-                                    <span className="text-xs text-muted-foreground">Selected</span>
-                                  ) : null}
-                                </button>
-                              ))
-                            )}
-                          </div>
-                          <FormDescription className="text-xs">
-                            Select the course to notify.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  ) : null}
-                </CardContent>
-              </Card>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 gap-2"
-                  onClick={() => setIsPreviewOpen(true)}
-                >
-                  <EyeIcon className="size-4" />
-                  Preview
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 gap-2"
-                  disabled={form.formState.isSubmitting}
-                >
-                  <SendIcon className="size-4" />
-                  Send Notification
-                </Button>
-              </div>
-            </div>
-          </div>
+              {/* Course Selection - conditional */}
+              {audienceValue === "course" && (
+                <FormField
+                  control={form.control}
+                  name="courseId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Course</FormLabel>
+                      <FormControl>
+                        {isCoursePending ? (
+                          <Skeleton className="h-9 w-full" />
+                        ) : (
+                          <Select value={field.value || ""} onValueChange={field.onChange}>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Select a course" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {courseOptions.map((course) => (
+                                <SelectItem key={course._id} value={course._id}>
+                                  {course.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Select the course to notify.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Submit Button */}
+          <Button type="submit" className="w-full gap-2 sm:w-auto" disabled={isSending}>
+            <SendIcon className="h-4 w-4" />
+            {isSending ? "Sending..." : "Send Notification"}
+          </Button>
         </form>
       </Form>
-      <NotificationModal
-        open={isPreviewOpen}
-        onOpenChange={setIsPreviewOpen}
-        title={previewTitle}
-        message={previewMessage}
-        audienceLabel={previewAudienceDetail}
-      />
+
+      {/* Sent History Section */}
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold text-foreground">Sent History</h2>
+          <p className="text-sm text-muted-foreground">
+            View all notifications you have sent to students
+          </p>
+        </div>
+
+        <SentHistoryTable
+          notifications={sentNotifications}
+          isLoading={isHistoryPending}
+          pagination={pagination}
+          onPageChange={handleHistoryPageChange}
+        />
+      </div>
     </div>
   );
 }
