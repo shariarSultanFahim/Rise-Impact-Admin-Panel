@@ -10,11 +10,17 @@ export type {
   AnalyticsTrend
 } from "./analytics";
 export type {
+  ForgetPasswordRequest,
+  ForgetPasswordResponse,
   LoginErrorMessage,
   LoginErrorResponse,
   LoginRequest,
   LoginResponse,
-  LoginResponseData
+  LoginResponseData,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  VerifyEmailRequest,
+  VerifyEmailResponse
 } from "./auth";
 export type { AuthSession } from "./auth-session";
 export type { CourseDetail } from "./course-detail";

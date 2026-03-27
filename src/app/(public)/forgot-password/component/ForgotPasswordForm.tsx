@@ -6,8 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+import type { LoginErrorResponse } from "@/types/auth";
+import { RESET_PASSWORD_TOKEN_STORAGE_KEY } from "@/constants/auth";
+
+import { useForgetPassword, useVerifyEmail } from "@/hooks";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,13 +35,20 @@ import { Input } from "@/components/ui/input";
 
 import { ForgotPasswordFormData, forgotPasswordSchema } from "../schema/forgotPassword.schema";
 
+const OTP_LENGTH = 6;
+
 export default function ForgotPasswordForm() {
-  const [isLoading, setIsLoading] = useState(false);
   const [isOtpOpen, setIsOtpOpen] = useState(false);
+  const [emailForOtp, setEmailForOtp] = useState("");
   const [otpError, setOtpError] = useState("");
-  const [otpDigits, setOtpDigits] = useState(["", "", "", ""]);
+  const [otpDigits, setOtpDigits] = useState<string[]>(
+    Array.from({ length: OTP_LENGTH }, () => "")
+  );
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const router = useRouter();
+  const { mutateAsync: forgetPassword, isPending: isForgetPending } = useForgetPassword();
+  const { mutateAsync: verifyEmail, isPending: isVerifyPending } = useVerifyEmail();
+  const isLoading = isForgetPending || isVerifyPending;
   const canSubmitOtp = useMemo(
     () => otpDigits.every((digit) => digit.trim().length === 1),
     [otpDigits]
@@ -48,14 +61,33 @@ export default function ForgotPasswordForm() {
     }
   });
 
+  function getErrorMessage(error: unknown, fallbackMessage: string) {
+    if (!axios.isAxiosError<LoginErrorResponse>(error)) {
+      return fallbackMessage;
+    }
+
+    return (
+      error.response?.data?.errorMessages?.[0]?.message ??
+      error.response?.data?.message ??
+      error.message ??
+      fallbackMessage
+    );
+  }
+
   async function onSubmit(data: ForgotPasswordFormData) {
-    setIsLoading(true);
+    const toastId = toast.loading("Sending OTP...");
+
     try {
-      // TODO: Implement forgot password API call
-      void data;
+      const response = await forgetPassword({ email: data.email });
+      setEmailForOtp(data.email);
+      setOtpDigits(Array.from({ length: OTP_LENGTH }, () => ""));
+      setOtpError("");
       setIsOtpOpen(true);
-    } finally {
-      setIsLoading(false);
+      toast.success(response.message || "OTP sent successfully.", { id: toastId });
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to send OTP. Please try again."), {
+        id: toastId
+      });
     }
   }
 
@@ -78,27 +110,58 @@ export default function ForgotPasswordForm() {
   }
 
   async function handleOtpResend() {
-    setIsLoading(true);
+    const targetEmail = emailForOtp || form.getValues("email");
+
+    if (!targetEmail) {
+      toast.error("Email is required to resend OTP.");
+      return;
+    }
+
+    const toastId = toast.loading("Resending OTP...");
+
     try {
-      //  TODO: Implement OTP resend API call
-      toast.success("OTP has been resent to your email.");
-    } finally {
-      setIsLoading(false);
+      const response = await forgetPassword({ email: targetEmail });
+      toast.success(response.message || "OTP has been resent to your email.", { id: toastId });
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to resend OTP. Please try again."), {
+        id: toastId
+      });
     }
   }
 
   async function handleOtpSubmit() {
     if (!canSubmitOtp) {
-      setOtpError("Please enter the 4-digit code.");
+      setOtpError("Please enter the 6-digit code.");
       return;
     }
 
-    setIsLoading(true);
+    const targetEmail = emailForOtp || form.getValues("email");
+
+    if (!targetEmail) {
+      setOtpError("Email is required for verification.");
+      return;
+    }
+
+    const oneTimeCode = Number.parseInt(otpDigits.join(""), 10);
+    const toastId = toast.loading("Verifying OTP...");
+
     try {
-      // TODO: Implement OTP verification API call
+      const response = await verifyEmail({
+        email: targetEmail,
+        oneTimeCode
+      });
+
+      if (!response.success || typeof response.data !== "string" || !response.data.trim()) {
+        throw new Error("Invalid verification response from server.");
+      }
+
+      sessionStorage.setItem(RESET_PASSWORD_TOKEN_STORAGE_KEY, response.data.trim());
+      toast.success(response.message || "OTP verified successfully.", { id: toastId });
       router.push("/new-password");
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      const message = getErrorMessage(error, "Invalid or expired OTP.");
+      setOtpError(message);
+      toast.error(message, { id: toastId });
     }
   }
 
@@ -115,7 +178,7 @@ export default function ForgotPasswordForm() {
         {/* Heading */}
         <h1 className="text-start text-3xl text-foreground">Forgot password</h1>
         <p className="my-4 text-sm">
-          Enter your email for the verification proccess,we will send 4 digits code to your email.
+          Enter your email for the verification process, we will send a 6 digit code to your email.
         </p>
 
         {/* Form */}
@@ -170,7 +233,7 @@ export default function ForgotPasswordForm() {
               Verification
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Enter your 4 digits code that you received on your email.
+              Enter your 6 digit code that you received in your email.
             </DialogDescription>
           </DialogHeader>
 
