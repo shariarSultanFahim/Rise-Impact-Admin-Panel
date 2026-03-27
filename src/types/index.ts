@@ -98,12 +98,17 @@ export type {
   GamificationStat
 } from "./gamification";
 export type {
+  GradebookAdminListResponse,
+  GradebookAdminQueryParams,
+  GradebookAdminSummaryResponse,
   GradebookData,
   GradebookFilters,
   GradebookHeading,
+  GradebookItem,
   GradebookPagination,
   GradebookStat,
-  GradebookStudent
+  GradebookStudent,
+  GradebookSummary
 } from "./gradebook";
 export type {
   NotificationAudience,
