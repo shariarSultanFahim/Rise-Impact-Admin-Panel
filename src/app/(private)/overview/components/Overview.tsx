@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  ArrowDown,
+  ArrowUp,
   BadgeCheck,
   BookOpen,
   CheckSquare,
@@ -9,7 +11,7 @@ import {
   Users
 } from "lucide-react";
 
-import type { OverviewData, OverviewIconKey } from "@/types/overview";
+import type { OverviewData, OverviewIconKey, TrendPeriod } from "@/types/overview";
 
 import {
   Card,
@@ -20,7 +22,9 @@ import {
   CardTitle
 } from "@/components/ui/card";
 
-import CompletionTrendsChart from "../../analytics/component/charts/CompletionTrendsChart";
+import CompletionTrendsChart from "./CompletionTrendsChart";
+import EnrollmentTrendsChart from "./EnrollmentTrendsChart";
+import PeriodCombobox from "./PeriodCombobox";
 
 const ICONS: Record<OverviewIconKey, LucideIcon> = {
   students: Users,
@@ -31,16 +35,17 @@ const ICONS: Record<OverviewIconKey, LucideIcon> = {
   discussion: MessageSquareText,
   badges: BadgeCheck,
   "activity-student": UserPlus,
-  "activity-quiz": BookOpen,
-  "activity-feedback": MessageSquareText,
-  "activity-badge": BadgeCheck
+  "activity-completion": CheckSquare,
+  "activity-quiz": BookOpen
 };
 
 interface OverviewProps {
   data: OverviewData;
+  period: TrendPeriod;
+  onPeriodChange: (period: TrendPeriod) => void;
 }
 
-export default function Overview({ data }: OverviewProps) {
+export default function Overview({ data, period, onPeriodChange }: OverviewProps) {
   return (
     <div className="flex flex-col gap-6">
       <header className="space-y-1">
@@ -67,7 +72,21 @@ export default function Overview({ data }: OverviewProps) {
               <CardContent className="space-y-1">
                 <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
                 {stat.delta ? (
-                  <div className="text-xs text-emerald-600">
+                  <div
+                    className={
+                      stat.deltaType === "increase"
+                        ? "text-xs text-emerald-600"
+                        : stat.deltaType === "decrease"
+                          ? "text-xs text-rose-600"
+                          : "text-xs text-muted-foreground"
+                    }
+                  >
+                    {stat.deltaType === "increase" ? (
+                      <ArrowUp className="mr-1 inline h-3 w-3" />
+                    ) : null}
+                    {stat.deltaType === "decrease" ? (
+                      <ArrowDown className="mr-1 inline h-3 w-3" />
+                    ) : null}
                     {stat.delta} {stat.deltaLabel}
                   </div>
                 ) : null}
@@ -77,16 +96,30 @@ export default function Overview({ data }: OverviewProps) {
         })}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Course Completion Trends</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CompletionTrendsChart data={data.completionTrends} />
-          </CardContent>
-        </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-foreground">Trends</h2>
+          <PeriodCombobox value={period} onChange={onPeriodChange} />
+        </div>
 
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Enrollment Trends</CardTitle>
+            </CardHeader>
+            <EnrollmentTrendsChart data={data.enrollmentTrends} />
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Completion Trends</CardTitle>
+            </CardHeader>
+            <CompletionTrendsChart data={data.completionTrends} />
+          </Card>
+        </div>
+      </div>
+
+      <div>
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
@@ -110,34 +143,6 @@ export default function Overview({ data }: OverviewProps) {
             })}
           </CardContent>
         </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {data.summaries.map((summary) => {
-          const Icon = ICONS[summary.icon];
-
-          return (
-            <Card key={summary.id} className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {summary.title}
-                </CardTitle>
-                <CardAction>
-                  <div className="rounded-full bg-muted p-2 text-muted-foreground">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                </CardAction>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <div className="text-2xl font-semibold text-foreground">
-                  {summary.value}{" "}
-                  <span className="text-xs text-muted-foreground">{summary.label}</span>
-                </div>
-                <div className="text-xs text-muted-foreground">{summary.subtitle}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
       </div>
     </div>
   );

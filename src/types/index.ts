@@ -101,14 +101,7 @@ export type {
   NotificationsData,
   NotificationsHeading
 } from "./notifications";
-export type {
-  OverviewActivity,
-  OverviewData,
-  OverviewHeading,
-  OverviewIconKey,
-  OverviewStat,
-  OverviewSummary
-} from "./overview";
+export type { OverviewData, OverviewIconKey } from "./overview";
 export type { UpdateCoursePayload, UpdateCourseResponse } from "./update-course";
 export type { User } from "./user";
 export type {
