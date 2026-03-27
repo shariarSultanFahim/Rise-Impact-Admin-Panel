@@ -19,7 +19,6 @@ import { useGetDashboardTrends } from "@/lib/api/overview/get-trends";
 import { timeAgo } from "@/lib/date";
 
 import Overview from "./components/Overview";
-import OverviewSkeleton from "./components/OverviewSkeleton";
 
 const DEFAULT_TREND_PERIOD: TrendPeriod = "6m";
 const DEFAULT_ACTIVITY_LIMIT = 20;
@@ -162,15 +161,16 @@ export default function OverviewPage() {
     [recentActivityData, summaryData, trendsData]
   );
 
-  const isLoading = isSummaryPending || isTrendsPending || isRecentActivityPending;
-
   return (
     <section className="flex flex-col gap-6">
-      {isLoading ? (
-        <OverviewSkeleton />
-      ) : (
-        <Overview data={overviewData} period={period} onPeriodChange={setPeriod} />
-      )}
+      <Overview
+        data={overviewData}
+        period={period}
+        onPeriodChange={setPeriod}
+        isStatsLoading={isSummaryPending}
+        isTrendsLoading={isTrendsPending}
+        isActivityLoading={isRecentActivityPending}
+      />
     </section>
   );
 }
