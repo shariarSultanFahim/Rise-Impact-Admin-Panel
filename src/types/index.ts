@@ -74,10 +74,20 @@ export type {
   DiscussionReplyUpdated
 } from "./discussions";
 export type {
-  CreateFeedbackInput,
-  Feedback,
-  FeedbackResponse,
-  UpdateFeedbackInput
+  CourseOption,
+  CourseOptionsResponse,
+  FeedbackAdminDetailResponse,
+  FeedbackAdminItem,
+  FeedbackAdminListResponse,
+  FeedbackAdminPagination,
+  FeedbackAdminQueryParams,
+  FeedbackAdminSummary,
+  FeedbackAdminSummaryResponse,
+  FeedbackDeleteResponse,
+  FeedbackRespondData,
+  FeedbackRespondPayload,
+  FeedbackRespondResponse,
+  RatingDistributionBucket
 } from "./feedback";
 export type {
   GamificationBadge,

@@ -1,71 +1,103 @@
-export interface Feedback {
-  id: string;
-  userId: string;
+export type GrowthType = "increase" | "decrease" | "no_change";
+
+export interface ApiResponseBase {
+  success: boolean;
   message: string;
-  rating?: number;
-  category?: string;
-  status: "pending" | "reviewed" | "resolved";
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface CreateFeedbackInput {
-  message: string;
-  rating?: number;
-  category?: string;
+export interface Statistic {
+  value: number;
+  growth: number;
+  growthType: GrowthType;
 }
 
-export interface UpdateFeedbackInput {
-  status?: "pending" | "reviewed" | "resolved";
-  message?: string;
+export interface RatingDistributionBucket {
+  rating: number;
+  count: number;
 }
 
-export interface FeedbackResponse {
-  data: Feedback[];
-  total: number;
-  page: number;
-  pageSize: number;
+export interface FeedbackAdminSummary {
+  comparisonPeriod: string;
+  totalReviews: Statistic;
+  averageRating: Statistic;
+  pendingResponses: number;
+  ratingDistribution: RatingDistributionBucket[];
 }
 
-export interface FeedbackHeading {
-  title: string;
-  subtitle: string;
+export interface FeedbackAdminSummaryResponse extends ApiResponseBase {
+  data: FeedbackAdminSummary;
 }
 
-export interface FeedbackFilters {
-  courses: string[];
-}
-
-export interface FeedbackStat {
-  id: string;
-  title: string;
-  value: string;
-}
-
-export interface FeedbackSubmission {
-  id: string;
-  studentName: string;
+export interface FeedbackAdminStudent {
+  _id: string;
+  name: string;
   email: string;
-  assignment: string;
-  course: string;
-  score: number | null;
-  rating: number | null;
-  submittedAt: string;
-  answer: string;
-  instructorFeedback: string;
+  profilePicture: string | null;
 }
 
-export interface FeedbackPagination {
+export interface FeedbackAdminCourse {
+  _id: string;
+  title: string;
+  slug: string;
+}
+
+export interface FeedbackAdminItem {
+  _id: string;
+  student: FeedbackAdminStudent;
+  course: FeedbackAdminCourse;
+  rating: number;
+  review: string;
+  adminResponse: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+}
+
+export interface FeedbackAdminQueryParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  searchTerm?: string;
+  course?: string;
+  rating?: number;
+}
+
+export interface FeedbackAdminPagination {
   page: number;
-  totalPages: number;
-  showing: number;
+  limit: number;
   total: number;
+  totalPage: number;
 }
 
-export interface FeedbackData {
-  heading: FeedbackHeading;
-  filters: FeedbackFilters;
-  stats: FeedbackStat[];
-  submissions: FeedbackSubmission[];
-  pagination: FeedbackPagination;
+export interface FeedbackAdminListResponse extends ApiResponseBase {
+  pagination: FeedbackAdminPagination;
+  data: FeedbackAdminItem[];
+}
+
+export interface FeedbackAdminDetailResponse extends ApiResponseBase {
+  data: FeedbackAdminItem;
+}
+
+export interface FeedbackRespondPayload {
+  adminResponse: string;
+}
+
+export interface FeedbackRespondData {
+  _id: string;
+  adminResponse: string;
+  respondedAt: string;
+}
+
+export interface FeedbackRespondResponse extends ApiResponseBase {
+  data: FeedbackRespondData;
+}
+
+export interface FeedbackDeleteResponse extends ApiResponseBase {}
+
+export interface CourseOption {
+  _id: string;
+  title: string;
+}
+
+export interface CourseOptionsResponse extends ApiResponseBase {
+  data: CourseOption[];
 }

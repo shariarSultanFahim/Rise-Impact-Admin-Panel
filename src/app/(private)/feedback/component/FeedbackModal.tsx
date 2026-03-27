@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { SendIcon, SparklesIcon, StarHalfIcon, StarIcon } from "lucide-react";
+import { SendIcon, StarHalfIcon, StarIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import { FeedbackSubmission } from "@/types/feedback";
+import { useDeleteFeedback } from "@/lib/api/feedback/delete-feedback";
+import { useGetAdminFeedbackById } from "@/lib/api/feedback/get-admin-feedback-by-id";
+import { useRespondFeedback } from "@/lib/api/feedback/respond-feedback";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 
 const MAX_RATING = 5;
@@ -24,11 +27,32 @@ const MAX_RATING = 5;
 type FeedbackModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  submission: FeedbackSubmission | null;
+  selectedFeedbackId: string | null;
 };
 
-export default function FeedbackModal({ open, onOpenChange, submission }: FeedbackModalProps) {
+export default function FeedbackModal({
+  open,
+  onOpenChange,
+  selectedFeedbackId
+}: FeedbackModalProps) {
   const [personalizedFeedback, setPersonalizedFeedback] = useState("");
+
+  const { data: detailResponse, isPending: isDetailPending } = useGetAdminFeedbackById(
+    selectedFeedbackId ?? undefined,
+    open
+  );
+  const { mutateAsync: respondFeedback, isPending: isResponding } = useRespondFeedback();
+  const { mutateAsync: deleteFeedback, isPending: isDeleting } = useDeleteFeedback();
+
+  const submission = detailResponse?.data;
+
+  useEffect(() => {
+    if (!submission?.adminResponse) {
+      return;
+    }
+
+    setPersonalizedFeedback(submission.adminResponse);
+  }, [submission?.adminResponse]);
 
   const ratingStars = useMemo(() => {
     if (!submission?.rating) {
@@ -55,11 +79,11 @@ export default function FeedbackModal({ open, onOpenChange, submission }: Feedba
   }, [submission?.rating]);
 
   const initials = useMemo(() => {
-    if (!submission?.studentName) {
+    if (!submission?.student?.name) {
       return "";
     }
 
-    return submission.studentName
+    return submission.student.name
       .split(" ")
       .filter(Boolean)
       .map((part) => part[0])
@@ -68,88 +92,142 @@ export default function FeedbackModal({ open, onOpenChange, submission }: Feedba
       .toUpperCase();
   }, [submission]);
 
-  const handleSend = () => {
-    toast.success("Feedback sent successfully.");
-    setPersonalizedFeedback("");
-    onOpenChange(false);
+  const handleRespond = async () => {
+    if (!selectedFeedbackId) {
+      return;
+    }
+
+    const trimmedResponse = personalizedFeedback.trim();
+
+    if (!trimmedResponse) {
+      toast.error("Please enter an admin response.");
+      return;
+    }
+
+    try {
+      await respondFeedback({
+        feedbackId: selectedFeedbackId,
+        payload: {
+          adminResponse: trimmedResponse
+        }
+      });
+
+      toast.success("Response added successfully.");
+    } catch {
+      toast.error("Unable to submit response. Please try again.");
+    }
   };
 
-  const handleSuggest = () => {
-    toast.success("Resources suggested successfully.");
-    setPersonalizedFeedback("");
-    onOpenChange(false);
-  };
+  const handleDelete = async () => {
+    if (!selectedFeedbackId) {
+      return;
+    }
 
-  if (!submission) {
-    return null;
-  }
+    const isConfirmed = window.confirm("Delete this feedback permanently?");
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
+      await deleteFeedback({ feedbackId: selectedFeedbackId });
+      toast.success("Feedback deleted successfully.");
+      onOpenChange(false);
+    } catch {
+      toast.error("Unable to delete feedback. Please try again.");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-w-xl flex-col gap-5 bg-card">
         <DialogHeader>
-          <DialogTitle>Submission Details</DialogTitle>
-          <DialogDescription>Review the submission before sending feedback.</DialogDescription>
+          <DialogTitle>Feedback Details</DialogTitle>
+          <DialogDescription>Review and respond to student feedback.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/10 p-4">
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage
-                src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${submission.studentName}`}
-                alt={submission.studentName}
-              />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-semibold text-foreground">{submission.studentName}</p>
-              <p className="text-xs text-muted-foreground">{submission.email}</p>
+        {isDetailPending ? (
+          <div className="space-y-3">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        ) : submission ? (
+          <>
+            <div className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/10 p-4">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage
+                    src={
+                      submission.student.profilePicture ??
+                      `https://api.dicebear.com/9.x/pixel-art/svg?seed=${submission.student.name}`
+                    }
+                    alt={submission.student.name}
+                  />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{submission.student.name}</p>
+                  <p className="text-xs text-muted-foreground">{submission.student.email}</p>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(submission.createdAt).toLocaleString()}
+              </div>
             </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">Course</p>
+              <div className="rounded-lg border border-border/60 bg-muted/10 p-3 text-sm text-muted-foreground">
+                {submission.course.title}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">Review</p>
+              <div className="space-y-2 rounded-lg border border-border/60 bg-muted/10 p-3">
+                {ratingStars ? ratingStars : null}
+                <p className="text-sm text-muted-foreground">{submission.review}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">Admin Response</p>
+              <Textarea
+                placeholder="Write a response for the student..."
+                value={personalizedFeedback}
+                onChange={(event) => setPersonalizedFeedback(event.target.value)}
+                className="min-h-[110px]"
+              />
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={handleDelete}
+                disabled={isDeleting || isResponding}
+              >
+                <Trash2Icon className="size-4" />
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
+              <Button
+                type="button"
+                className="gap-2"
+                onClick={handleRespond}
+                disabled={isResponding || isDeleting}
+              >
+                <SendIcon className="size-4" />
+                {isResponding ? "Saving..." : "Respond"}
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <div className="rounded-md border border-border/60 bg-muted/10 p-4 text-sm text-muted-foreground">
+            Feedback not found.
           </div>
-          <div className="text-xs text-muted-foreground">Submitted {submission.submittedAt}</div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">Student Answer</p>
-          <div className="rounded-lg border border-border/60 bg-muted/10 p-3 text-sm text-muted-foreground">
-            {submission.answer}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">Course Feedback</p>
-          <div className="space-y-2 rounded-lg border border-border/60 bg-muted/10 p-3">
-            {ratingStars ? (
-              ratingStars
-            ) : (
-              <p className="text-xs text-muted-foreground">No rating yet</p>
-            )}
-            <p className="text-sm text-muted-foreground">
-              {submission.instructorFeedback || "No feedback submitted yet."}
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">Personalized Feedback</p>
-          <Textarea
-            placeholder="Provide constructive feedback and suggestions..."
-            value={personalizedFeedback}
-            onChange={(event) => setPersonalizedFeedback(event.target.value)}
-            className="min-h-[110px]"
-          />
-        </div>
-
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button type="button" variant="outline" className="gap-2" onClick={handleSuggest}>
-            <SparklesIcon className="size-4" />
-            Suggest Resources
-          </Button>
-          <Button type="button" className="gap-2" onClick={handleSend}>
-            <SendIcon className="size-4" />
-            Send Feedback
-          </Button>
-        </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
