@@ -1,27 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function AnalyticsSkeleton() {
+export function AnalyticsFilterSkeleton() {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="space-y-2">
-        <Skeleton className="h-7 w-48" />
-        <Skeleton className="h-4 w-72" />
-      </div>
+    <Card>
+      <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+          <Skeleton className="h-9 w-full sm:w-40" />
+          <Skeleton className="h-9 w-full sm:w-48" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-28" />
+          <Skeleton className="h-9 w-28" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-      <Card>
-        <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row">
-            <Skeleton className="h-9 w-full sm:w-40" />
-            <Skeleton className="h-9 w-full sm:w-48" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-28" />
-            <Skeleton className="h-9 w-28" />
-          </div>
-        </CardContent>
-      </Card>
-
+export function AnalyticsContentSkeleton() {
+  return (
+    <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <Card key={`stat-skeleton-${index}`}>
@@ -68,6 +67,19 @@ export default function AnalyticsSkeleton() {
           ))}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+export default function AnalyticsSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-48" />
+        <Skeleton className="h-4 w-72" />
+      </div>
+      <AnalyticsFilterSkeleton />
+      <AnalyticsContentSkeleton />
     </div>
   );
 }

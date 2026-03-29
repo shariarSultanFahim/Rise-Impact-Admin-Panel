@@ -1,13 +1,21 @@
 export type {
-  AnalyticsBarPoint,
-  AnalyticsData,
-  AnalyticsFilters,
-  AnalyticsHeading,
+  AnalyticsCourseCompletionItem,
+  AnalyticsCourseCompletionResponse,
+  AnalyticsCourseOption,
+  AnalyticsCourseOptionsResponse,
+  AnalyticsDateRange,
+  AnalyticsEngagementHeatmapResponse,
+  AnalyticsExportFormat,
+  AnalyticsExportType,
   AnalyticsHeatmapDay,
+  AnalyticsHeatmapItem,
   AnalyticsLinePoint,
-  AnalyticsStat,
+  AnalyticsPagination,
+  AnalyticsPeriod,
+  AnalyticsQuizPerformanceItem,
+  AnalyticsQuizPerformanceResponse,
   AnalyticsTopCourse,
-  AnalyticsTrend
+  ExportAnalyticsResult
 } from "./analytics";
 export type {
   ForgetPasswordRequest,

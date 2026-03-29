@@ -1,4 +1,3 @@
-export * from "./analytics";
 export * from "./course-detail";
 export * from "./courses";
 export * from "./gamification";
