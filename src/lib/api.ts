@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 import type { RefreshTokenResponse } from "@/types/auth";
 import type { AuthSession } from "@/types/auth-session";
-import { AUTH_SESSION_COOKIE } from "@/constants/auth";
+import { AUTH_SESSION_COOKIE, UNAUTHORIZED_PATH } from "@/constants/auth";
 import { env } from "@/env";
 
 import { cookie } from "@/lib/cookie-client";
@@ -55,7 +55,7 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    if (originalRequest._retry || !isInvalidTokenError(err)) {
+    if (originalRequest._retry || !shouldAttemptTokenRefresh(err)) {
       return Promise.reject(err);
     }
 
@@ -70,6 +70,7 @@ api.interceptors.response.use(
     const refreshedSession = await refreshPromise;
 
     if (!refreshedSession?.accessToken) {
+      redirectToUnauthorized();
       return Promise.reject(err);
     }
 
@@ -145,17 +146,20 @@ const removeCookieValue = (name: string): void => {
   cookie.remove(name);
 };
 
-const isInvalidTokenError = (error: AxiosError<ApiErrorResponse>): boolean => {
-  const message = error.response?.data?.message?.toLowerCase();
-  if (message === "invalid token") {
-    return true;
+const shouldAttemptTokenRefresh = (error: AxiosError<ApiErrorResponse>): boolean => {
+  return error.response?.status === 401;
+};
+
+const redirectToUnauthorized = (): void => {
+  if (typeof window === "undefined") {
+    return;
   }
 
-  return (
-    error.response?.data?.errorMessages?.some(
-      (errorMessage) => errorMessage.message?.toLowerCase() === "invalid token"
-    ) ?? false
-  );
+  removeCookieValue(AUTH_SESSION_COOKIE);
+
+  if (window.location.pathname !== UNAUTHORIZED_PATH) {
+    window.location.replace(UNAUTHORIZED_PATH);
+  }
 };
 
 const refreshAuthSession = async (): Promise<AuthSession | null> => {
@@ -164,23 +168,17 @@ const refreshAuthSession = async (): Promise<AuthSession | null> => {
   }
 
   const rawSession = getCookieValue(AUTH_SESSION_COOKIE);
-  if (!rawSession) {
-    return null;
-  }
-
-  const session = parseSession(rawSession);
-  if (!session?.refreshToken) {
-    return null;
-  }
+  const session = rawSession ? parseSession(rawSession) : null;
 
   try {
     const response = await axios.post<RefreshTokenResponse>(
       `${env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
-      { refreshToken: session.refreshToken },
+      session?.refreshToken ? { refreshToken: session.refreshToken } : undefined,
       {
         headers: {
           Accept: "application/json"
-        }
+        },
+        withCredentials: true
       }
     );
 

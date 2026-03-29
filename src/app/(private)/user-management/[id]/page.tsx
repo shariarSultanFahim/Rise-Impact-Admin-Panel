@@ -6,7 +6,7 @@ import UserDetailsClient from "./components/user-details-client";
 
 export default function UserDetailsPage() {
   const params = useParams();
-  const userId = params.id as string;
+  const userId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   if (!userId) {
     return null;

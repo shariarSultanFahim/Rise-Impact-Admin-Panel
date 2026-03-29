@@ -1,4 +1,4 @@
-export type UserManageStatus = "ACTIVE" | "INACTIVE" | "RESTRICTED";
+export type UserManageStatus = "ACTIVE" | "INACTIVE" | "RESTRICTED" | "DELETE";
 export type UserManageRole = "STUDENT";
 
 export interface UserManageQueryParams {
