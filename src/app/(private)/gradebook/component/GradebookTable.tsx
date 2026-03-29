@@ -61,6 +61,7 @@ export default function GradebookTable({
               <TableHead>Assignments</TableHead>
               <TableHead>Completion</TableHead>
               <TableHead>Last Activity</TableHead>
+              <TableHead>Enrolled Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -83,6 +84,9 @@ export default function GradebookTable({
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-8 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-8 w-24" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-8 w-24" />
@@ -128,6 +132,7 @@ export default function GradebookTable({
             <TableHead>Assignments</TableHead>
             <TableHead>Completion</TableHead>
             <TableHead>Last Activity</TableHead>
+            <TableHead>Enrolled Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -176,6 +181,9 @@ export default function GradebookTable({
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {student.lastActivityDate ? timeAgo(student.lastActivityDate) : "Never"}
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {student.enrolledAt ? timeAgo(student.enrolledAt) : ""}
               </TableCell>
             </TableRow>
           ))}

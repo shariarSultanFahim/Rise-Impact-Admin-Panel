@@ -43,6 +43,19 @@ const GrowthIcon = ({ growthType }: { growthType: "increase" | "decrease" | "no_
   return null;
 };
 
+const toSafeNumber = (value: unknown): number => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+};
+
 export default function GradebookSummaryCards({
   isSummaryPending,
   summary
@@ -71,25 +84,30 @@ export default function GradebookSummaryCards({
     return null;
   }
 
+  const avgQuizScoreValue = toSafeNumber(summary.avgQuizScore?.value);
+  const avgCompletionValue = toSafeNumber(summary.avgCompletion?.value);
+  const pendingAssignments = toSafeNumber(summary.pendingAssignments);
+  const atRiskStudents = toSafeNumber(summary.atRiskStudents);
+
   const cards = [
     {
       title: "Avg Quiz Score",
-      value: `${summary.avgQuizScore.value.toFixed(1)}%`,
+      value: `${avgQuizScoreValue.toFixed(1)}%`,
       growth: summary.avgQuizScore
     },
     {
       title: "Avg Completion",
-      value: `${summary.avgCompletion.value.toFixed(1)}%`,
+      value: `${avgCompletionValue.toFixed(1)}%`,
       growth: summary.avgCompletion
     },
     {
       title: "Pending Assignments",
-      value: summary.pendingAssignments.toString(),
+      value: String(pendingAssignments),
       growth: null
     },
     {
       title: "At-Risk Students",
-      value: summary.atRiskStudents.toString(),
+      value: String(atRiskStudents),
       growth: null
     }
   ];
