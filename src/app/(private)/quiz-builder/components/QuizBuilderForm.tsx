@@ -1,359 +1,346 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { ChevronDown, PlusIcon, Save } from "lucide-react";
+import { Plus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm, useWatch, type UseFormReturn } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useDebounceValue } from "usehooks-ts";
 
-import type { QuestionType, QuizFormData } from "@/types/quiz-builder";
+import type {
+  QuizDetail,
+  QuizFormData,
+  QuizOption,
+  QuizQuestionType
+} from "@/types/quiz-builder-manage";
+
 import {
-  COURSE_OPTIONS,
-  QUESTION_TYPE_OPTIONS,
-  QUIZ_DEFAULT_SETTINGS
-} from "@/constants/quiz-builder";
+  useCreateQuiz,
+  useDeleteQuiz,
+  useGetQuizCourseOptions,
+  useGetQuizDetails,
+  useGetQuizzes,
+  useUpdateQuiz
+} from "@/lib/api/quiz-builder";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-
-import DescriptiveForm from "./forms/descriptive.form";
-import MultipleChoiceForm from "./forms/multiple.choice.form";
-import { quizSchema } from "./forms/schema/quiz.schema";
-import TrueFalseForm from "./forms/true.false.form";
-
-function createDefaultQuestion(type: QuestionType): QuizFormData["questions"][number] {
-  if (type === "multiple-choice") {
-    return {
-      type,
-      text: "",
-      explanation: "",
-      options: ["", "", "", ""],
-      correctOptionIndex: 0
-    };
-  }
-
-  if (type === "true-false") {
-    return {
-      type,
-      text: "",
-      explanation: "",
-      correctAnswer: true
-    };
-  }
-
-  return {
-    type,
-    text: "",
-    explanation: ""
-  };
-}
-
-type QuestionCardProps = {
-  index: number;
-  form: UseFormReturn<QuizFormData>;
-  onTypeChange: (index: number, nextType: QuestionType) => void;
-};
-
-function QuestionCard({ index, form, onTypeChange }: QuestionCardProps) {
-  const questionType = useWatch({
-    control: form.control,
-    name: `questions.${index}.type`
-  });
-  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
-  const typeLabel = QUESTION_TYPE_OPTIONS.find((opt) => opt.value === questionType)?.label;
-
-  return (
-    <Card className="border-muted/60">
-      <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <CardTitle className="text-base font-semibold">Question {index + 1}</CardTitle>
-        <FormField
-          control={form.control}
-          name={`questions.${index}.type`}
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <DropdownMenu open={typeDropdownOpen} onOpenChange={setTypeDropdownOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-48 gap-2 border-primary">
-                      {typeLabel || "Select option"}
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuRadioGroup
-                      value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        onTypeChange(index, value as QuestionType);
-                        setTypeDropdownOpen(false);
-                      }}
-                    >
-                      {QUESTION_TYPE_OPTIONS.map((option) => (
-                        <DropdownMenuRadioItem key={option.value} value={option.value}>
-                          {option.label}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {questionType === "multiple-choice" ? (
-          <MultipleChoiceForm index={index} form={form} />
-        ) : null}
-        {questionType === "true-false" ? <TrueFalseForm index={index} form={form} /> : null}
-        {questionType === "descriptive" ? <DescriptiveForm index={index} form={form} /> : null}
-      </CardContent>
-    </Card>
-  );
-}
+  defaultFormValues,
+  defaultQuestion,
+  getOptionIdByIndex,
+  mapQuizDetailToForm,
+  normalizeOptionsAfterRemoval,
+  quizFormSchema,
+  toPayload,
+  type EditorMode
+} from "./quiz-builder/quiz-builder.helpers";
+import QuizDeleteDialog from "./quiz-builder/QuizDeleteDialog";
+import QuizDetailPanel from "./quiz-builder/QuizDetailPanel";
+import QuizEditorPanel from "./quiz-builder/QuizEditorPanel";
+import QuizListPanel from "./quiz-builder/QuizListPanel";
 
 export default function QuizBuilderForm() {
-  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [editorMode, setEditorMode] = useState<EditorMode>("list");
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
+  const [quizToDelete, setQuizToDelete] = useState<{ id: string; title: string } | null>(null);
+
+  const [queryParams, setQueryParams] = useState({ page: 1, limit: 10 });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 400);
+
+  const quizListParams = useMemo(
+    () => ({
+      page: queryParams.page,
+      limit: queryParams.limit,
+      searchTerm: debouncedSearchTerm || undefined
+    }),
+    [debouncedSearchTerm, queryParams.limit, queryParams.page]
+  );
+
+  const { data: quizListResponse, isPending: isListPending } = useGetQuizzes(quizListParams);
+  const { data: courseOptionsResponse } = useGetQuizCourseOptions(editorMode !== "list");
+
+  const { data: quizDetailsResponse, isPending: isDetailsPending } = useGetQuizDetails(
+    selectedQuizId ?? undefined,
+    Boolean(selectedQuizId)
+  );
+
+  const createQuizMutation = useCreateQuiz();
+  const updateQuizMutation = useUpdateQuiz();
+  const deleteQuizMutation = useDeleteQuiz();
 
   const form = useForm<QuizFormData>({
-    resolver: zodResolver(quizSchema as never),
-    defaultValues: {
-      settings: QUIZ_DEFAULT_SETTINGS,
-      questions: [createDefaultQuestion("multiple-choice")]
-    }
+    resolver: zodResolver(quizFormSchema),
+    defaultValues: defaultFormValues
   });
 
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "questions"
   });
 
-  const handleTypeChange = useCallback(
-    (index: number, nextType: QuestionType) => {
-      const currentQuestion = form.getValues(`questions.${index}`);
-      const nextQuestion = createDefaultQuestion(nextType);
+  const quizzes = quizListResponse?.data ?? [];
+  const pagination = quizListResponse?.pagination;
+  const selectedQuiz = quizDetailsResponse?.data;
+  const courseOptions = courseOptionsResponse?.data ?? [];
+  const totalPages = pagination?.totalPage ?? 1;
 
-      form.setValue(
-        `questions.${index}`,
-        {
-          ...nextQuestion,
-          text: currentQuestion.text ?? "",
-          explanation: currentQuestion.explanation ?? ""
-        },
-        { shouldDirty: true, shouldTouch: true }
-      );
-    },
-    [form]
-  );
+  const isSaving = createQuizMutation.isPending || updateQuizMutation.isPending;
 
-  const handleAddQuestion = (type: QuestionType) => {
-    append(createDefaultQuestion(type));
+  const handleStartCreate = () => {
+    setEditorMode("create");
+    setEditingQuizId(null);
+    form.reset(defaultFormValues);
   };
 
-  const onSubmit = (values: QuizFormData) => {
+  const handleSelectQuiz = (quizId: string) => {
+    setSelectedQuizId(quizId);
+    setEditorMode("list");
+    setEditingQuizId(null);
+  };
+
+  const handleEditQuiz = (quiz: QuizDetail) => {
+    setEditorMode("edit");
+    setEditingQuizId(quiz._id);
+    setSelectedQuizId(quiz._id);
+    form.reset(mapQuizDetailToForm(quiz));
+  };
+
+  const handleEditRequestFromList = (quizId: string) => {
+    if (selectedQuiz?._id !== quizId) {
+      handleSelectQuiz(quizId);
+      return;
+    }
+
+    handleEditQuiz(selectedQuiz);
+  };
+
+  const handleAddQuestion = (type: QuizQuestionType) => {
+    append(defaultQuestion(type));
+  };
+
+  const handleTypeChange = (questionIndex: number, type: QuizQuestionType) => {
+    const current = form.getValues(`questions.${questionIndex}`);
+
+    if (type === "TRUE_FALSE") {
+      form.setValue(
+        `questions.${questionIndex}`,
+        {
+          ...current,
+          type,
+          options: [
+            { optionId: "T", text: "True", isCorrect: true },
+            { optionId: "F", text: "False", isCorrect: false }
+          ]
+        },
+        { shouldDirty: true }
+      );
+      return;
+    }
+
+    const nextOptions: QuizOption[] =
+      current.options.length >= 2
+        ? current.options.map((option, index) => ({
+            ...option,
+            optionId: getOptionIdByIndex(index)
+          }))
+        : [
+            { optionId: "A", text: "", isCorrect: true },
+            { optionId: "B", text: "", isCorrect: false }
+          ];
+
+    form.setValue(
+      `questions.${questionIndex}`,
+      {
+        ...current,
+        type,
+        options: nextOptions
+      },
+      { shouldDirty: true }
+    );
+  };
+
+  const handleSelectCorrectOption = (questionIndex: number, optionIndex: number) => {
+    const options = form.getValues(`questions.${questionIndex}.options`);
+
+    const nextOptions = options.map((option, index) => ({
+      ...option,
+      isCorrect: index === optionIndex
+    }));
+
+    form.setValue(`questions.${questionIndex}.options`, nextOptions, { shouldDirty: true });
+  };
+
+  const handleAddOption = (questionIndex: number) => {
+    const options = form.getValues(`questions.${questionIndex}.options`);
+
+    const nextOption: QuizOption = {
+      optionId: getOptionIdByIndex(options.length),
+      text: "",
+      isCorrect: false
+    };
+
+    form.setValue(`questions.${questionIndex}.options`, [...options, nextOption], {
+      shouldDirty: true
+    });
+  };
+
+  const handleRemoveOption = (questionIndex: number, optionIndex: number) => {
+    const options = form.getValues(`questions.${questionIndex}.options`);
+
+    if (options.length <= 2) {
+      return;
+    }
+
+    const normalized = normalizeOptionsAfterRemoval(options, optionIndex);
+    form.setValue(`questions.${questionIndex}.options`, normalized, { shouldDirty: true });
+  };
+
+  const handleMoveQuestionUp = (questionIndex: number) => {
+    if (questionIndex <= 0) {
+      return;
+    }
+
+    move(questionIndex, questionIndex - 1);
+  };
+
+  const handleMoveQuestionDown = (questionIndex: number) => {
+    if (questionIndex >= fields.length - 1) {
+      return;
+    }
+
+    move(questionIndex, questionIndex + 1);
+  };
+
+  const handleCancelEditing = () => {
+    setEditorMode("list");
+    setEditingQuizId(null);
+    form.reset(defaultFormValues);
+  };
+
+  const handleSubmit = async (values: QuizFormData) => {
+    const payload = toPayload(values);
+
     try {
-      //TODO: Implement API Here
-      quizSchema.parse(values);
-      toast.success("Quiz saved successfully!");
-      console.log("Quiz form data", values);
-    } catch {
-      console.log("Validation errors", form.formState.errors);
-    } finally {
-      form.reset();
+      if (editorMode === "edit" && editingQuizId) {
+        const response = await updateQuizMutation.mutateAsync({
+          quizId: editingQuizId,
+          payload
+        });
+
+        toast.success(response.message || "Quiz updated successfully.");
+        setSelectedQuizId(response.data._id);
+      } else {
+        const response = await createQuizMutation.mutateAsync(payload);
+
+        toast.success(response.message || "Quiz created successfully.");
+        setSelectedQuizId(response.data._id);
+      }
+
+      setEditorMode("list");
+      setEditingQuizId(null);
+      form.reset(defaultFormValues);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save quiz.";
+      toast.error(message);
+    }
+  };
+
+  const handleDeleteQuiz = async () => {
+    if (!quizToDelete) {
+      return;
+    }
+
+    try {
+      const response = await deleteQuizMutation.mutateAsync({ quizId: quizToDelete.id });
+      toast.success(response.message || "Quiz deleted successfully.");
+
+      if (selectedQuizId === quizToDelete.id) {
+        setSelectedQuizId(null);
+      }
+
+      setQuizToDelete(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to delete quiz.";
+      toast.error(message);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="relative flex h-screen flex-col">
-        <Card className="flex flex-row items-start justify-between bg-white p-6 shadow-none">
+    <div className="space-y-6">
+      <Card className="bg-white">
+        <CardContent className="flex flex-col gap-4 pt-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Quiz Builder</h1>
             <p className="text-sm text-muted-foreground">
-              Create assessments to test student knowledge.
+              Create, view, edit, and manage quizzes with single-save updates.
             </p>
           </div>
-          <Button type="submit" className="gap-2 bg-secondary">
-            <Save className="h-4 w-4" />
-            <p>Save</p>
+          <Button onClick={handleStartCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Quiz
           </Button>
-        </Card>
+        </CardContent>
+      </Card>
 
-        <div className="flex-1 space-y-6 overflow-y-auto py-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Quiz Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-6">
-              <div className="flex flex-col gap-6 md:flex-row">
-                <FormField
-                  control={form.control}
-                  name="settings.title"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Quiz Title</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="bg-white"
-                          placeholder="e.g., Communication Skills Assessment"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="settings.courseId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Course</FormLabel>
-                      <FormControl>
-                        <DropdownMenu
-                          open={courseDropdownOpen}
-                          onOpenChange={setCourseDropdownOpen}
-                        >
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full gap-2 border-primary">
-                              {selectedCourseId
-                                ? COURSE_OPTIONS.find((c) => c.value === selectedCourseId)?.label
-                                : "Select a course"}
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-fit">
-                            <DropdownMenuRadioGroup
-                              value={selectedCourseId}
-                              onValueChange={(value) => {
-                                setSelectedCourseId(value);
-                                field.onChange(value);
-                                setCourseDropdownOpen(false);
-                              }}
-                            >
-                              {COURSE_OPTIONS.map((course) => (
-                                <DropdownMenuRadioItem key={course.value} value={course.value}>
-                                  {course.label}
-                                </DropdownMenuRadioItem>
-                              ))}
-                            </DropdownMenuRadioGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex flex-col gap-6 md:flex-row">
-                <FormField
-                  control={form.control}
-                  name="settings.timeLimit"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Time Limit (minutes)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={180}
-                          step={1}
-                          className="bg-white"
-                          value={field.value}
-                          onChange={(event) => field.onChange(Number(event.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="settings.passingScore"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Passing Score (%)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          step={1}
-                          className="bg-white"
-                          value={field.value}
-                          onChange={(event) => field.onChange(Number(event.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+        <QuizListPanel
+          quizzes={quizzes}
+          isListPending={isListPending}
+          selectedQuizId={selectedQuizId}
+          selectedQuiz={selectedQuiz}
+          searchTerm={searchTerm}
+          pagination={pagination}
+          totalPages={totalPages}
+          onSearchChange={(value) => {
+            setSearchTerm(value);
+            setQueryParams((prev) => ({ ...prev, page: 1 }));
+          }}
+          onSelectQuiz={handleSelectQuiz}
+          onRequestEdit={handleEditRequestFromList}
+          onRequestDelete={setQuizToDelete}
+          onPageChange={(page) => setQueryParams((prev) => ({ ...prev, page }))}
+        />
 
-          <div className="space-y-6">
-            {fields.map((field, index) => (
-              <QuestionCard
-                key={field.id}
-                index={index}
-                form={form}
-                onTypeChange={handleTypeChange}
-              />
-            ))}
-          </div>
+        {editorMode === "list" ? (
+          <QuizDetailPanel
+            selectedQuizId={selectedQuizId}
+            selectedQuiz={selectedQuiz}
+            isDetailsPending={isDetailsPending}
+            onEdit={handleEditQuiz}
+            onDelete={setQuizToDelete}
+          />
+        ) : (
+          <QuizEditorPanel
+            mode={editorMode}
+            form={form}
+            fields={fields}
+            courseOptions={courseOptions}
+            isSaving={isSaving}
+            onSubmit={handleSubmit}
+            onCancel={handleCancelEditing}
+            onAddQuestion={handleAddQuestion}
+            onTypeChange={handleTypeChange}
+            onRemoveQuestion={remove}
+            onMoveQuestionUp={handleMoveQuestionUp}
+            onMoveQuestionDown={handleMoveQuestionDown}
+            onAddOption={handleAddOption}
+            onRemoveOption={handleRemoveOption}
+            onSelectCorrectOption={handleSelectCorrectOption}
+          />
+        )}
+      </div>
 
-          <Card>
-            <CardContent className="flex flex-wrap items-center gap-3 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 gap-2 border-primary"
-                onClick={() => handleAddQuestion("multiple-choice")}
-              >
-                <PlusIcon className="size-4" />
-                Add Multiple Choice
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 gap-2 border-primary"
-                onClick={() => handleAddQuestion("true-false")}
-              >
-                <PlusIcon className="size-4" />
-                Add True/False
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 gap-2 border-primary"
-                onClick={() => handleAddQuestion("descriptive")}
-              >
-                <PlusIcon className="size-4" />
-                Add Descriptive
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </form>
-    </Form>
+      <QuizDeleteDialog
+        quizToDelete={quizToDelete}
+        isDeleting={deleteQuizMutation.isPending}
+        onClose={() => setQuizToDelete(null)}
+        onConfirm={handleDeleteQuiz}
+      />
+    </div>
   );
 }
