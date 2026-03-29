@@ -23,7 +23,7 @@ import BadgesAchievements from "./BadgesAchievements";
 import Leaderboard from "./Leaderboard";
 
 const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 20;
+const DEFAULT_LIMIT = 5;
 
 export default function GamificationContent() {
   const [badgeParams, setBadgeParams] = useState<GamificationBadgeQueryParams>({
@@ -59,7 +59,7 @@ export default function GamificationContent() {
   } = useGetGamificationLeaderboard(leaderboardParams);
 
   const badges = badgeResponse?.data ?? [];
-  const leaderboard = leaderboardResponse?.data ?? [];
+  const leaderboard = useMemo(() => leaderboardResponse?.data ?? [], [leaderboardResponse?.data]);
   const badgePagination = badgeResponse?.pagination;
   const leaderboardPagination = leaderboardResponse?.pagination;
   const leaderboardEntries = useMemo(() => {
