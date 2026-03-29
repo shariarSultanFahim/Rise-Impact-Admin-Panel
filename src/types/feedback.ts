@@ -44,7 +44,7 @@ export interface FeedbackAdminCourse {
 export interface FeedbackAdminItem {
   _id: string;
   student: FeedbackAdminStudent;
-  course: FeedbackAdminCourse;
+  course: FeedbackAdminCourse | null;
   rating: number;
   review: string;
   adminResponse: string | null;

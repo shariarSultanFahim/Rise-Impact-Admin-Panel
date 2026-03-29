@@ -2,6 +2,7 @@
 
 import { PencilLineIcon } from "lucide-react";
 
+import Pagination from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,11 +12,17 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import type { GamificationBadgeCriteriaType, GamificationBadgeItem } from "@/types";
+import type {
+  GamificationBadgeCriteriaType,
+  GamificationBadgeItem,
+  GamificationPagination
+} from "@/types";
 
 type BadgesAchievementsProps = {
   badges: GamificationBadgeItem[];
   onEditBadge: (badge: GamificationBadgeItem) => void;
+  pagination?: GamificationPagination;
+  onPageChange: (page: number) => void;
 };
 
 const criteriaLabelMap: Record<GamificationBadgeCriteriaType, string> = {
@@ -27,7 +34,12 @@ const criteriaLabelMap: Record<GamificationBadgeCriteriaType, string> = {
   CUSTOM: "Custom"
 };
 
-export default function BadgesAchievements({ badges, onEditBadge }: BadgesAchievementsProps) {
+export default function BadgesAchievements({
+  badges,
+  onEditBadge,
+  pagination,
+  onPageChange
+}: BadgesAchievementsProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -97,6 +109,18 @@ export default function BadgesAchievements({ badges, onEditBadge }: BadgesAchiev
             </CardContent>
           </Card>
         ))}
+
+        <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Showing {badges.length} of {pagination?.total ?? 0} badges
+          </span>
+          <Pagination
+            currentPage={pagination?.page ?? 1}
+            totalPages={pagination?.totalPage ?? 1}
+            onPageChange={onPageChange}
+            iconOnly={false}
+          />
+        </div>
       </CardContent>
     </Card>
   );

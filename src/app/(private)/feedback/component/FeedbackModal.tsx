@@ -179,7 +179,7 @@ export default function FeedbackModal({
             <div className="space-y-2">
               <p className="text-sm font-semibold text-foreground">Course</p>
               <div className="rounded-lg border border-border/60 bg-muted/10 p-3 text-sm text-muted-foreground">
-                {submission.course.title}
+                {submission.course?.title ?? "Course Deleted"}
               </div>
             </div>
 

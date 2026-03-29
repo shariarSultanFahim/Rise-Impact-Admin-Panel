@@ -2,10 +2,11 @@ import { AwardIcon, CrownIcon, TrophyIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import Pagination from "@/components/pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { GamificationLeaderboardItem } from "@/types";
+import type { GamificationLeaderboardItem, GamificationPagination } from "@/types";
 
 type LeaderboardEntry = GamificationLeaderboardItem & {
   rank: number;
@@ -13,6 +14,8 @@ type LeaderboardEntry = GamificationLeaderboardItem & {
 
 type LeaderboardProps = {
   entries: LeaderboardEntry[];
+  pagination?: GamificationPagination;
+  onPageChange: (page: number) => void;
 };
 
 const rankIcons = {
@@ -28,7 +31,7 @@ const getInitials = (name: string) =>
     .join("")
     .toUpperCase();
 
-export default function Leaderboard({ entries }: LeaderboardProps) {
+export default function Leaderboard({ entries, pagination, onPageChange }: LeaderboardProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -82,6 +85,18 @@ export default function Leaderboard({ entries }: LeaderboardProps) {
             </Card>
           );
         })}
+
+        <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground">
+          <span>
+            Showing {entries.length} of {pagination?.total ?? 0} students
+          </span>
+          <Pagination
+            currentPage={pagination?.page ?? 1}
+            totalPages={pagination?.totalPage ?? 1}
+            onPageChange={onPageChange}
+            iconOnly={false}
+          />
+        </div>
       </CardContent>
     </Card>
   );

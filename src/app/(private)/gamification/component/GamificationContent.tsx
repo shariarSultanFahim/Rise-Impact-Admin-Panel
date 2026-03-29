@@ -8,7 +8,6 @@ import { useDebounceValue } from "usehooks-ts";
 import { useGetGamificationBadges } from "@/lib/api/gamification/get-gamification-badges";
 import { useGetGamificationLeaderboard } from "@/lib/api/gamification/get-gamification-leaderboard";
 
-import Pagination from "@/components/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -143,20 +142,13 @@ export default function GamificationContent() {
               </CardContent>
             </Card>
           ) : (
-            <BadgesAchievements badges={badges} onEditBadge={handleBadgeEditOpen} />
-          )}
-
-          <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              Showing {badges.length} of {badgePagination?.total ?? 0} badges
-            </span>
-            <Pagination
-              currentPage={badgePagination?.page ?? DEFAULT_PAGE}
-              totalPages={badgePagination?.totalPage ?? 1}
+            <BadgesAchievements
+              badges={badges}
+              onEditBadge={handleBadgeEditOpen}
+              pagination={badgePagination}
               onPageChange={handleBadgePageChange}
-              iconOnly={false}
             />
-          </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-4">
@@ -175,20 +167,12 @@ export default function GamificationContent() {
               </CardContent>
             </Card>
           ) : (
-            <Leaderboard entries={leaderboardEntries} />
-          )}
-
-          <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground">
-            <span>
-              Showing {leaderboard.length} of {leaderboardPagination?.total ?? 0} students
-            </span>
-            <Pagination
-              currentPage={leaderboardPagination?.page ?? DEFAULT_PAGE}
-              totalPages={leaderboardPagination?.totalPage ?? 1}
+            <Leaderboard
+              entries={leaderboardEntries}
+              pagination={leaderboardPagination}
               onPageChange={handleLeaderboardPageChange}
-              iconOnly={false}
             />
-          </div>
+          )}
         </div>
       </div>
 

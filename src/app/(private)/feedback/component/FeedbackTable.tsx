@@ -119,7 +119,9 @@ export default function FeedbackTable({ submissions, onSelect }: FeedbackTablePr
                 </div>
               </TableCell>
               <TableCell>
-                <p className="text-sm font-medium text-foreground">{submission.course.title}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {submission.course?.title ?? "Course Deleted"}
+                </p>
                 <p className="text-xs text-muted-foreground">{timeAgo(submission.createdAt)}</p>
               </TableCell>
               <TableCell>

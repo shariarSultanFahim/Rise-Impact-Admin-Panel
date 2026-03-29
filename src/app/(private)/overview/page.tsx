@@ -149,12 +149,23 @@ const mapOverviewData = (
 export default function OverviewPage() {
   const [period, setPeriod] = useState<TrendPeriod>(DEFAULT_TREND_PERIOD);
 
-  const { data: summaryData, isPending: isSummaryPending } = useGetDashboardSummary();
-  const { data: trendsData, isPending: isTrendsPending } = useGetDashboardTrends({ period });
-  const { data: recentActivityData, isPending: isRecentActivityPending } =
-    useGetDashboardRecentActivity({
-      limit: DEFAULT_ACTIVITY_LIMIT
-    });
+  const {
+    data: summaryData,
+    isPending: isSummaryPending,
+    isFetching: isSummaryFetching
+  } = useGetDashboardSummary();
+  const {
+    data: trendsData,
+    isPending: isTrendsPending,
+    isFetching: isTrendsFetching
+  } = useGetDashboardTrends({ period });
+  const {
+    data: recentActivityData,
+    isPending: isActivityPending,
+    isFetching: isActivityFetching
+  } = useGetDashboardRecentActivity({
+    limit: DEFAULT_ACTIVITY_LIMIT
+  });
 
   const overviewData = useMemo(
     () => mapOverviewData(summaryData, trendsData, recentActivityData ?? []),
@@ -167,9 +178,12 @@ export default function OverviewPage() {
         data={overviewData}
         period={period}
         onPeriodChange={setPeriod}
-        isStatsLoading={isSummaryPending}
-        isTrendsLoading={isTrendsPending}
-        isActivityLoading={isRecentActivityPending}
+        isStatsPending={isSummaryPending}
+        isStatsFetching={isSummaryFetching}
+        isTrendsPending={isTrendsPending}
+        isTrendsFetching={isTrendsFetching}
+        isActivityPending={isActivityPending}
+        isActivityFetching={isActivityFetching}
       />
     </section>
   );
