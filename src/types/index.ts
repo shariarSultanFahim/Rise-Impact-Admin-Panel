@@ -96,12 +96,17 @@ export type {
   RatingDistributionBucket
 } from "./feedback";
 export type {
-  GamificationBadge,
-  GamificationCertificateTemplate,
-  GamificationData,
-  GamificationHeading,
-  GamificationLeaderboardEntry,
-  GamificationStat
+  GamificationBadgeCriteria,
+  GamificationBadgeCriteriaType,
+  GamificationBadgeItem,
+  GamificationBadgeListResponse,
+  GamificationBadgeQueryParams,
+  GamificationLeaderboardItem,
+  GamificationLeaderboardQueryParams,
+  GamificationLeaderboardResponse,
+  GamificationPagination,
+  UpdateGamificationBadgePayload,
+  UpdateGamificationBadgeResponse
 } from "./gamification";
 export type {
   GradebookAdminListResponse,

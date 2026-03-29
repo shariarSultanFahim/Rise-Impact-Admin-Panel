@@ -1,23 +1,18 @@
-import { AwardIcon, CrownIcon, RotateCcwIcon, TrophyIcon } from "lucide-react";
-
-import type { GamificationLeaderboardEntry } from "@/types/gamification";
+import { AwardIcon, CrownIcon, TrophyIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { GamificationLeaderboardItem } from "@/types";
+
+type LeaderboardEntry = GamificationLeaderboardItem & {
+  rank: number;
+};
 
 type LeaderboardProps = {
-  entries: GamificationLeaderboardEntry[];
+  entries: LeaderboardEntry[];
 };
 
 const rankIcons = {
@@ -41,18 +36,21 @@ export default function Leaderboard({ entries }: LeaderboardProps) {
           <CardTitle className="text-base font-semibold">Leaderboard</CardTitle>
           <CardDescription className="text-xs">Top students by points.</CardDescription>
         </div>
-        <CardAction>
-          <ButtonReset />
-        </CardAction>
       </CardHeader>
       <CardContent className="space-y-3">
+        {entries.length === 0 ? (
+          <div className="rounded-md border border-border/60 bg-muted/10 p-4 text-sm text-muted-foreground">
+            No leaderboard records found.
+          </div>
+        ) : null}
+
         {entries.map((entry) => {
           const Icon = rankIcons[entry.rank as keyof typeof rankIcons];
 
           return (
             <Card
-              key={entry.id}
-              className={cn("border-muted/60", entry.highlight && "bg-amber-50/70")}
+              key={entry.studentId}
+              className={cn("border-muted/60", entry.rank <= 3 && "bg-amber-50/70")}
             >
               <CardContent className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -64,7 +62,10 @@ export default function Leaderboard({ entries }: LeaderboardProps) {
                   </Badge>
                   <Avatar size="sm">
                     <AvatarImage
-                      src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${entry.name}`}
+                      src={
+                        entry.profilePicture ??
+                        `https://api.dicebear.com/9.x/pixel-art/svg?seed=${entry.name}`
+                      }
                       alt={entry.name}
                     />
                     <AvatarFallback>{getInitials(entry.name)}</AvatarFallback>
@@ -72,7 +73,7 @@ export default function Leaderboard({ entries }: LeaderboardProps) {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{entry.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {entry.points} pts • {entry.badges} badges
+                      {entry.totalPoints} pts • {entry.badgeCount} badges
                     </p>
                   </div>
                 </div>
@@ -83,19 +84,5 @@ export default function Leaderboard({ entries }: LeaderboardProps) {
         })}
       </CardContent>
     </Card>
-  );
-}
-
-function ButtonReset() {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      className="h-8 gap-2 rounded-full border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-600"
-    >
-      <RotateCcwIcon className="size-3.5" />
-      Reset
-    </Button>
   );
 }

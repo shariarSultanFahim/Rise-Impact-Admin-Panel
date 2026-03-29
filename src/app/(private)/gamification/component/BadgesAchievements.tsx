@@ -1,14 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { PencilLineIcon } from "lucide-react";
 
-import { BrainIcon, CoinsIcon, MicIcon, TimerIcon } from "lucide-react";
-
-import type { GamificationBadge } from "@/types/gamification";
-
-import { cn } from "@/lib/utils";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,70 +11,93 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-
-import CreateBadgeModal from "./CreateBadgeModal";
+import type { GamificationBadgeCriteriaType, GamificationBadgeItem } from "@/types";
 
 type BadgesAchievementsProps = {
-  badges: GamificationBadge[];
+  badges: GamificationBadgeItem[];
+  onEditBadge: (badge: GamificationBadgeItem) => void;
 };
 
-const badgeIcons = {
-  mic: MicIcon,
-  timer: TimerIcon,
-  coins: CoinsIcon,
-  brain: BrainIcon
+const criteriaLabelMap: Record<GamificationBadgeCriteriaType, string> = {
+  POINTS_THRESHOLD: "Points Threshold",
+  COURSES_COMPLETED: "Courses Completed",
+  QUIZZES_PASSED: "Quizzes Passed",
+  PERFECT_QUIZ: "Perfect Quiz",
+  STREAK_DAYS: "Streak Days",
+  CUSTOM: "Custom"
 };
 
-export default function BadgesAchievements({ badges }: BadgesAchievementsProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+export default function BadgesAchievements({ badges, onEditBadge }: BadgesAchievementsProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold">Badges & Achievements</CardTitle>
           <CardDescription className="text-xs">
-            Reward students for meaningful milestones.
+            Update seeded badge rules and visibility.
           </CardDescription>
         </div>
         <CardAction>
-          <Button size="sm" className="gap-2" onClick={() => setIsModalOpen(true)}>
-            Create Badge
-          </Button>
+          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+            {badges.length} badges
+          </span>
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
-        {badges.map((badge) => {
-          const Icon = badgeIcons[badge.icon];
+        {badges.length === 0 ? (
+          <div className="rounded-md border border-border/60 bg-muted/10 p-4 text-sm text-muted-foreground">
+            No badges found.
+          </div>
+        ) : null}
 
-          return (
-            <Card key={badge.id} className="border-muted/60 bg-white">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <Icon className="h-5 w-5 text-muted-foreground" />
+        {badges.map((badge) => (
+          <Card key={badge._id} className="border-muted/60 bg-white">
+            <CardContent className="flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">{badge.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {badge.description ?? "No description provided"}
+                  </p>
                 </div>
-                <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-foreground">{badge.title}</p>
-                    <p className="text-xs text-muted-foreground">{badge.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">Criteria:</span>{" "}
-                      {badge.criteria}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="secondary"
-                    className={cn("self-start sm:self-center", "bg-emerald-100 text-emerald-700")}
-                  >
-                    {badge.awarded} awarded
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                <span
+                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    badge.isActive
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {badge.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                <span className="rounded-md border border-border/60 bg-muted/30 px-2 py-1">
+                  Icon: {badge.icon}
+                </span>
+                <span className="rounded-md border border-border/60 bg-muted/30 px-2 py-1">
+                  Criteria: {criteriaLabelMap[badge.criteria.type]}
+                </span>
+                <span className="rounded-md border border-border/60 bg-muted/30 px-2 py-1">
+                  Threshold: {badge.criteria.threshold}
+                </span>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => onEditBadge(badge)}
+                >
+                  <PencilLineIcon className="size-4" />
+                  Edit
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </CardContent>
-      <CreateBadgeModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </Card>
   );
 }

@@ -26,6 +26,13 @@ export const courseFormSchema = z.object({
   title: z.string().min(2, "Course title is required"),
   status: courseStatusSchema,
   description: z.string().min(10, "Description must be at least 10 characters"),
-  thumbnailUrl: z.string().min(1, "Upload a course thumbnail before publishing."),
+  thumbnailUrl: z
+    .string()
+    .min(1, "Upload a course thumbnail before publishing.")
+    .refine((url) => {
+      const maxSizeMB = 10;
+      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+      return url.length <= maxSizeBytes;
+    }, "Image must be less than 10MB"),
   modules: z.array(moduleSchema)
 }) satisfies z.ZodType<CourseForm>;
