@@ -1,4 +1,4 @@
-export type LessonContentType = "VIDEO" | "READING" | "ASSIGNMENT";
+export type LessonContentType = "VIDEO" | "READING" | "QUIZ";
 
 export interface ApiResponseBase {
   success: boolean;
@@ -36,7 +36,7 @@ export interface LessonItem {
   attachments: string[];
   prerequisiteLesson?: string | null;
   readingContent?: string;
-  assignmentInstructions?: string;
+  quiz?: string | { _id?: string; title?: string } | null;
   contentFile?: string;
   createdAt?: string;
   updatedAt?: string;

@@ -18,8 +18,10 @@ interface CurriculumBuilderProps {
   pendingModuleId: string | null;
   onAddModule: () => void;
   onModuleTitleChange: (moduleIndex: number, nextTitle: string) => void;
+  onMoveModule: (fromIndex: number, toIndex: number) => void;
   onRemoveModule: (moduleIndex: number) => void;
   onAddLesson: (moduleIndex: number) => void;
+  onMoveLesson: (moduleIndex: number, fromIndex: number, toIndex: number) => void;
   onRemoveLesson: (moduleIndex: number, lessonIndex: number) => void;
   onSelectLesson: (moduleIndex: number, lessonIndex: number) => void;
   onEditLesson: (moduleIndex: number, lessonIndex: number) => void;
@@ -33,8 +35,10 @@ export default function CurriculumBuilder({
   pendingModuleId,
   onAddModule,
   onModuleTitleChange,
+  onMoveModule,
   onRemoveModule,
   onAddLesson,
+  onMoveLesson,
   onRemoveLesson,
   onSelectLesson,
   onEditLesson
@@ -64,8 +68,10 @@ export default function CurriculumBuilder({
               pendingModuleId={pendingModuleId}
               onSelectLesson={onSelectLesson}
               onModuleTitleChange={onModuleTitleChange}
+              onMoveModule={onMoveModule}
               onRemoveModule={onRemoveModule}
               onAddLesson={onAddLesson}
+              onMoveLesson={onMoveLesson}
               onRemoveLesson={onRemoveLesson}
               onEditLesson={onEditLesson}
             />

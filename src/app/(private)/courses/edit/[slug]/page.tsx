@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useParams } from "next/navigation";
 
 import type { CourseStatus, LessonForm, ModuleForm } from "@/types/course-form";
 
-import { api as instance } from "@/lib/api";
-import { CourseDetailsResponse } from "@/lib/api/courses/get-details";
+import { useGetCourseDetails } from "@/lib/api/courses/get-details";
 
 import CreateCourse from "../../create/component/CreateCourse";
 
@@ -12,11 +13,27 @@ const normalizeLessonType = (type?: string): LessonForm["type"] => {
     return "reading";
   }
 
-  if (type === "ASSIGNMENT" || type === "assignment") {
-    return "assignment";
+  if (type === "QUIZ" || type === "quiz") {
+    return "quiz";
   }
 
   return "video";
+};
+
+const normalizeQuizId = (quiz: unknown): string => {
+  if (!quiz) {
+    return "";
+  }
+
+  if (typeof quiz === "string") {
+    return quiz;
+  }
+
+  if (typeof quiz === "object" && quiz !== null && "_id" in quiz) {
+    return String((quiz as Record<string, unknown>)._id ?? "");
+  }
+
+  return "";
 };
 
 const normalizeModules = (modules: unknown): ModuleForm[] => {
@@ -58,6 +75,7 @@ const normalizeModules = (modules: unknown): ModuleForm[] => {
           description: typeof lessonRecord.description === "string" ? lessonRecord.description : "",
           resourceLink:
             typeof lessonRecord.contentFile === "string" ? lessonRecord.contentFile : "",
+          quizId: normalizeQuizId(lessonRecord.quiz),
           objectives: Array.isArray(lessonRecord.learningObjectives)
             ? (lessonRecord.learningObjectives as string[])
             : [],
@@ -91,17 +109,26 @@ const normalizeStatus = (status: string): CourseStatus => {
   return "DRAFT";
 };
 
-interface EditCoursePageProps {
-  params: Promise<{ slug: string }>;
-}
+export default function EditCoursePage() {
+  const params = useParams<{ slug: string | string[] }>();
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
-export default async function EditCoursePage({ params }: EditCoursePageProps) {
-  const { slug } = await params;
+  const { data: course, isPending } = useGetCourseDetails(slug);
 
-  const { data: course } = await instance.get<CourseDetailsResponse>(`/courses/${slug}`);
+  if (isPending) {
+    return (
+      <section className="flex flex-col gap-6">
+        <p className="text-sm text-muted-foreground">Loading course details...</p>
+      </section>
+    );
+  }
 
-  if (!course) {
-    notFound();
+  if (!course?.data) {
+    return (
+      <section className="flex flex-col gap-6">
+        <p className="text-sm text-muted-foreground">Course not found.</p>
+      </section>
+    );
   }
 
   const initialValues = {

@@ -18,8 +18,10 @@ interface ModuleCardProps {
   pendingModuleId: string | null;
   onSelectLesson: (moduleIndex: number, lessonIndex: number) => void;
   onModuleTitleChange: (moduleIndex: number, nextTitle: string) => void;
+  onMoveModule: (fromIndex: number, toIndex: number) => void;
   onRemoveModule: (moduleIndex: number) => void;
   onAddLesson: (moduleIndex: number) => void;
+  onMoveLesson: (moduleIndex: number, fromIndex: number, toIndex: number) => void;
   onRemoveLesson: (moduleIndex: number, lessonIndex: number) => void;
   onEditLesson: (moduleIndex: number, lessonIndex: number) => void;
 }
@@ -32,8 +34,10 @@ export default function ModuleCard({
   pendingModuleId,
   onSelectLesson,
   onModuleTitleChange,
+  onMoveModule,
   onRemoveModule,
   onAddLesson,
+  onMoveLesson,
   onRemoveLesson,
   onEditLesson
 }: ModuleCardProps) {
@@ -59,8 +63,8 @@ export default function ModuleCard({
     if (type === "reading") {
       return "Reading";
     }
-    if (type === "assignment") {
-      return "Assignment";
+    if (type === "quiz") {
+      return "Quiz";
     }
     return "Video";
   };
@@ -69,14 +73,33 @@ export default function ModuleCard({
     if (type === "reading") {
       return <BookOpen className="h-4 w-4" />;
     }
-    if (type === "assignment") {
+    if (type === "quiz") {
       return <ClipboardCheck className="h-4 w-4" />;
     }
     return <Video className="h-4 w-4" />;
   };
 
   return (
-    <Card className={`space-y-3 border p-4 ${isActive ? "border-primary/40" : ""}`}>
+    <Card
+      className={`space-y-3 border p-4 ${isActive ? "border-primary/40" : ""}`}
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData("application/x-module-index", String(moduleIndex));
+        event.dataTransfer.effectAllowed = "move";
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        const sourceIndex = Number(event.dataTransfer.getData("application/x-module-index"));
+
+        if (!Number.isNaN(sourceIndex) && sourceIndex !== moduleIndex) {
+          onMoveModule(sourceIndex, moduleIndex);
+        }
+      }}
+    >
       <div className="flex flex-wrap items-center gap-3">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
         <FormField
@@ -133,6 +156,38 @@ export default function ModuleCard({
                     ? "border-primary/40 bg-muted/40 text-foreground"
                     : "border-muted bg-white text-muted-foreground hover:border-primary/30"
                 }`}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.setData("application/x-lesson-index", String(lessonIndex));
+                  event.dataTransfer.setData(
+                    "application/x-lesson-module-index",
+                    String(moduleIndex)
+                  );
+                  event.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+
+                  const sourceLessonIndex = Number(
+                    event.dataTransfer.getData("application/x-lesson-index")
+                  );
+                  const sourceModuleIndex = Number(
+                    event.dataTransfer.getData("application/x-lesson-module-index")
+                  );
+
+                  if (
+                    !Number.isNaN(sourceLessonIndex) &&
+                    !Number.isNaN(sourceModuleIndex) &&
+                    sourceModuleIndex === moduleIndex &&
+                    sourceLessonIndex !== lessonIndex
+                  ) {
+                    onMoveLesson(moduleIndex, sourceLessonIndex, lessonIndex);
+                  }
+                }}
               >
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-muted/60 text-muted-foreground">

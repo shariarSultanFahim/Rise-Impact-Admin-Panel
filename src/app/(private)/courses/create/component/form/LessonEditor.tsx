@@ -28,6 +28,7 @@ interface LessonEditorProps {
   moduleIndex: number;
   lessonIndex: number;
   lessonId: string;
+  quizOptions: Array<{ id: string; title: string }>;
   prerequisiteOptions: Array<{ id: string; title: string }>;
   isDraft: boolean;
   isSubmitting: boolean;
@@ -40,6 +41,7 @@ export default function LessonEditor({
   moduleIndex,
   lessonIndex,
   lessonId,
+  quizOptions,
   prerequisiteOptions,
   isDraft,
   isSubmitting,
@@ -74,8 +76,8 @@ export default function LessonEditor({
   const resourceLabel =
     lessonType === "reading"
       ? "Select Reading Material"
-      : lessonType === "assignment"
-        ? "Select Assignment File"
+      : lessonType === "quiz"
+        ? "Quiz lessons do not require a file"
         : "Select Video File";
 
   return (
@@ -115,7 +117,7 @@ export default function LessonEditor({
                   <SelectContent>
                     <SelectItem value="video">Video Lesson</SelectItem>
                     <SelectItem value="reading">Reading Material</SelectItem>
-                    <SelectItem value="assignment">Assignment</SelectItem>
+                    <SelectItem value="quiz">Quiz</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -124,29 +126,64 @@ export default function LessonEditor({
           )}
         />
 
-        <div className="rounded-xl border border-dashed border-white bg-white px-4 py-6 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <Upload className="h-5 w-5 text-muted-foreground" />
-            <p className="text-sm font-medium text-foreground">{resourceLabel}</p>
-            <p className="text-xs text-muted-foreground">MP4, MOV, PDF, ZIP (Max 500MB)</p>
-          </div>
-          <div className="mt-4 flex flex-col items-center gap-2">
-            <Input
-              type="file"
-              className="max-w-[240px]"
-              onChange={(event) => {
-                const file = event.target.files?.[0] ?? null;
-                setResourceFile(file);
-                onContentFileChange(file);
-              }}
-            />
-            {resourceFile && (
-              <p className="max-w-[240px] truncate text-xs text-muted-foreground">
-                Selected: {resourceFile.name}
-              </p>
+        {lessonType === "quiz" ? (
+          <FormField
+            control={form.control}
+            name={`modules.${moduleIndex}.lessons.${lessonIndex}.quizId`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select Quiz *</FormLabel>
+                <FormControl>
+                  <Select value={field.value || undefined} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an existing quiz" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {quizOptions.length === 0 ? (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          No quizzes found. Create a quiz first.
+                        </div>
+                      ) : (
+                        quizOptions.map((quiz) => (
+                          <SelectItem key={quiz.id} value={quiz.id}>
+                            {quiz.title}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
+          />
+        ) : null}
+
+        {lessonType !== "quiz" ? (
+          <div className="rounded-xl border border-dashed border-white bg-white px-4 py-6 text-center">
+            <div className="flex flex-col items-center gap-2">
+              <Upload className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">{resourceLabel}</p>
+              <p className="text-xs text-muted-foreground">MP4, MOV, PDF, ZIP (Max 500MB)</p>
+            </div>
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <Input
+                type="file"
+                className="max-w-[240px]"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setResourceFile(file);
+                  onContentFileChange(file);
+                }}
+              />
+              {resourceFile && (
+                <p className="max-w-[240px] truncate text-xs text-muted-foreground">
+                  Selected: {resourceFile.name}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <FormField
           control={form.control}

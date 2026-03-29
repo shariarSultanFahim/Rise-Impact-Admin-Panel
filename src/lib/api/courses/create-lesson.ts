@@ -14,7 +14,7 @@ export interface LessonMutationPayload {
   isVisible: boolean;
   prerequisiteLesson?: string;
   readingContent?: string;
-  assignmentInstructions?: string;
+  quiz?: string;
   contentFile?: File;
   attachments?: File[];
 }
@@ -43,8 +43,8 @@ const buildLessonFormData = (payload: LessonMutationPayload) => {
     body.append("readingContent", payload.readingContent);
   }
 
-  if (payload.assignmentInstructions) {
-    body.append("assignmentInstructions", payload.assignmentInstructions);
+  if (payload.quiz) {
+    body.append("quiz", payload.quiz);
   }
 
   if (payload.contentFile) {

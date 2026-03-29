@@ -62,6 +62,18 @@ export default function Courses({ data, isLoading = false, params, onParamsChang
     onParamsChange({ ...params, searchTerm: debouncedSearchTerm, page: 1 });
   }, [debouncedSearchTerm, onParamsChange, params]);
 
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleStatusChange = (value: string) => {
+    onParamsChange({ ...params, status: value as CourseManageStatus | "", page: 1 });
+  };
+
+  const handlePageChange = (page: number) => {
+    onParamsChange({ ...params, page });
+  };
+
   const stats = [
     { id: "total", title: "Total Courses", value: String(totalCourses) },
     {
@@ -80,18 +92,6 @@ export default function Courses({ data, isLoading = false, params, onParamsChang
       value: String(courseStatsData?.data?.reduce((sum, c) => sum + c.enrollmentCount, 0))
     }
   ];
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-  };
-
-  const handleStatusChange = (value: string) => {
-    onParamsChange({ ...params, status: value as CourseManageStatus | "", page: 1 });
-  };
-
-  const handlePageChange = (page: number) => {
-    onParamsChange({ ...params, page });
-  };
 
   const activeStatusLabel = STATUS_OPTIONS.find((o) => o.value === activeStatus)?.label ?? "All";
 

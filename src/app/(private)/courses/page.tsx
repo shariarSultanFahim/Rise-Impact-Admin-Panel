@@ -11,7 +11,8 @@ import Courses from "./component/Courses";
 export default function CoursesPage() {
   const [params, setParams] = useState<CourseManageQueryParams>({
     page: 1,
-    limit: 6
+    limit: 6,
+    sort: "-createdAt"
   });
 
   const { data, isPending } = useGetCourses(params);

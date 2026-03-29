@@ -17,8 +17,11 @@ import { useCreateCourse, useUpdateCourse } from "@/lib/api/courses/create-cours
 import { useCreateLesson } from "@/lib/api/courses/create-lesson";
 import { useDeleteLesson } from "@/lib/api/courses/delete-lesson";
 import { useDeleteModule } from "@/lib/api/courses/delete-module";
+import { useReorderLessons } from "@/lib/api/courses/reorder-lessons";
+import { useReorderModules } from "@/lib/api/courses/reorder-modules";
 import { useUpdateLesson } from "@/lib/api/courses/update-lesson";
 import { useUpdateModule } from "@/lib/api/courses/update-module";
+import { useGetQuizzes } from "@/lib/api/quiz-builder/get-quizzes";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,6 +40,7 @@ const createLessonDraft = (): LessonForm => ({
   type: "video",
   description: "",
   resourceLink: "",
+  quizId: "",
   objectives: [],
   prerequisites: [],
   attachments: [],
@@ -54,8 +58,8 @@ const toApiLessonType = (type: LessonForm["type"]): LessonContentType => {
     return "READING";
   }
 
-  if (type === "assignment") {
-    return "ASSIGNMENT";
+  if (type === "quiz") {
+    return "QUIZ";
   }
 
   return "VIDEO";
@@ -66,11 +70,27 @@ const toFormLessonType = (type: LessonContentType): LessonForm["type"] => {
     return "reading";
   }
 
-  if (type === "ASSIGNMENT") {
-    return "assignment";
+  if (type === "QUIZ") {
+    return "quiz";
   }
 
   return "video";
+};
+
+const resolveQuizId = (val: unknown): string => {
+  if (!val) {
+    return "";
+  }
+
+  if (typeof val === "string") {
+    return val;
+  }
+
+  if (typeof val === "object" && val !== null && "_id" in val) {
+    return String((val as Record<string, unknown>)._id ?? "");
+  }
+
+  return "";
 };
 
 // The API may return `prerequisiteLesson` as a populated document object
@@ -196,6 +216,15 @@ export default function CreateCourse({
   const { mutateAsync: createLesson } = useCreateLesson();
   const { mutateAsync: updateLesson } = useUpdateLesson();
   const { mutateAsync: deleteLesson } = useDeleteLesson();
+  const { mutateAsync: reorderLessons } = useReorderLessons();
+
+  const { data: quizzesData } = useGetQuizzes({ page: 1, limit: 100 }, isEditMode);
+
+  const quizOptions = useMemo(
+    () => (quizzesData?.data ?? []).map((quiz) => ({ id: quiz._id, title: quiz.title })),
+    [quizzesData?.data]
+  );
+  const { mutateAsync: reorderModules } = useReorderModules();
   const { mutateAsync: updateCourse } = useUpdateCourse();
 
   const handleAddModule = async () => {
@@ -347,6 +376,107 @@ export default function CreateCourse({
     setActiveLessonIndex(lessonIndex);
   };
 
+  const handleMoveModule = async (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    const currentModules = form.getValues("modules");
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= currentModules.length ||
+      toIndex >= currentModules.length
+    ) {
+      return;
+    }
+
+    const nextModules = [...currentModules];
+    const [movedModule] = nextModules.splice(fromIndex, 1);
+    nextModules.splice(toIndex, 0, movedModule);
+    form.setValue("modules", nextModules, { shouldDirty: true });
+
+    if (activeModuleIndex === fromIndex) {
+      setActiveModuleIndex(toIndex);
+    } else if (fromIndex < activeModuleIndex && activeModuleIndex <= toIndex) {
+      setActiveModuleIndex((prev) => prev - 1);
+    } else if (toIndex <= activeModuleIndex && activeModuleIndex < fromIndex) {
+      setActiveModuleIndex((prev) => prev + 1);
+    }
+
+    if (!courseId) {
+      return;
+    }
+
+    const moduleOrder = nextModules
+      .map((module) => module.backendId)
+      .filter((moduleId): moduleId is string => Boolean(moduleId));
+
+    if (moduleOrder.length !== nextModules.length) {
+      return;
+    }
+
+    try {
+      await reorderModules({ courseId, moduleOrder });
+    } catch {
+      toast.error("Failed to reorder modules.");
+    }
+  };
+
+  const handleMoveLesson = async (moduleIndex: number, fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    const currentLessons = form.getValues(`modules.${moduleIndex}.lessons`);
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= currentLessons.length ||
+      toIndex >= currentLessons.length
+    ) {
+      return;
+    }
+
+    const nextLessons = [...currentLessons];
+    const [movedLesson] = nextLessons.splice(fromIndex, 1);
+    nextLessons.splice(toIndex, 0, movedLesson);
+    form.setValue(`modules.${moduleIndex}.lessons`, nextLessons, { shouldDirty: true });
+
+    if (moduleIndex === activeModuleIndex) {
+      if (activeLessonIndex === fromIndex) {
+        setActiveLessonIndex(toIndex);
+      } else if (fromIndex < activeLessonIndex && activeLessonIndex <= toIndex) {
+        setActiveLessonIndex((prev) => prev - 1);
+      } else if (toIndex <= activeLessonIndex && activeLessonIndex < fromIndex) {
+        setActiveLessonIndex((prev) => prev + 1);
+      }
+    }
+
+    if (!courseId) {
+      return;
+    }
+
+    const moduleId = form.getValues(`modules.${moduleIndex}.backendId`);
+    if (!moduleId) {
+      return;
+    }
+
+    const lessonOrder = nextLessons
+      .map((lesson) => lesson.backendId)
+      .filter((lessonId): lessonId is string => Boolean(lessonId));
+
+    if (lessonOrder.length !== nextLessons.length) {
+      return;
+    }
+
+    try {
+      await reorderLessons({ courseId, moduleId, lessonOrder });
+    } catch {
+      toast.error("Failed to reorder lessons.");
+    }
+  };
+
   const handleEditLesson = async (moduleIndex: number, lessonIndex: number) => {
     setActiveModuleIndex(moduleIndex);
     setActiveLessonIndex(lessonIndex);
@@ -369,6 +499,7 @@ export default function CreateCourse({
         type: toFormLessonType(lesson.type),
         description: lesson.description ?? "",
         objectives: lesson.learningObjectives ?? [],
+        quizId: resolveQuizId(lesson.quiz),
         prerequisites: (() => {
           const id = resolvePrerequisiteId(lesson.prerequisiteLesson as unknown);
           return id ? [id] : [];
@@ -416,7 +547,8 @@ export default function CreateCourse({
         learningObjectives: lesson.objectives,
         isVisible: lesson.isPublished,
         prerequisiteLesson: lesson.prerequisites[0],
-        contentFile
+        quiz: lesson.type === "quiz" ? lesson.quizId || undefined : undefined,
+        contentFile: lesson.type === "quiz" ? undefined : contentFile
       };
 
       if (lesson.isDraft || !lesson.backendId) {
@@ -435,6 +567,7 @@ export default function CreateCourse({
           type: toFormLessonType(createdLesson.type),
           description: createdLesson.description ?? "",
           objectives: createdLesson.learningObjectives ?? [],
+          quizId: resolveQuizId(createdLesson.quiz),
           prerequisites: (() => {
             const id = resolvePrerequisiteId(createdLesson.prerequisiteLesson as unknown);
             return id ? [id] : [];
@@ -463,6 +596,7 @@ export default function CreateCourse({
           type: toFormLessonType(updatedLesson.type),
           description: updatedLesson.description ?? "",
           objectives: updatedLesson.learningObjectives ?? [],
+          quizId: resolveQuizId(updatedLesson.quiz),
           prerequisites: (() => {
             const id = resolvePrerequisiteId(updatedLesson.prerequisiteLesson as unknown);
             return id ? [id] : [];
@@ -619,8 +753,10 @@ export default function CreateCourse({
               pendingModuleId={pendingModuleId}
               onAddModule={handleAddModule}
               onModuleTitleChange={handleModuleTitleChange}
+              onMoveModule={handleMoveModule}
               onRemoveModule={handleRemoveModule}
               onAddLesson={handleAddLesson}
+              onMoveLesson={handleMoveLesson}
               onRemoveLesson={handleRemoveLesson}
               onSelectLesson={handleSelectLesson}
               onEditLesson={handleEditLesson}
@@ -633,6 +769,7 @@ export default function CreateCourse({
                 moduleIndex={activeModuleIndex}
                 lessonIndex={activeLessonIndex}
                 lessonId={activeLesson.id}
+                quizOptions={quizOptions}
                 prerequisiteOptions={prerequisiteOptions}
                 isDraft={Boolean(activeLesson.isDraft)}
                 isSubmitting={pendingLessonKey === `${activeModuleIndex}-${activeLessonIndex}`}

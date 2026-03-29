@@ -1,4 +1,4 @@
-export type LessonType = "video" | "reading" | "assignment";
+export type LessonType = "video" | "reading" | "quiz";
 export type CourseStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
 
 export interface LessonForm {
@@ -9,6 +9,7 @@ export interface LessonForm {
   type: LessonType;
   description: string;
   resourceLink?: string;
+  quizId?: string;
   objectives: string[];
   prerequisites: string[];
   attachments: string[];

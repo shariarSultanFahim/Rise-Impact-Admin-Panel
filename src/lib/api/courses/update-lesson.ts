@@ -33,8 +33,8 @@ const buildLessonFormData = (payload: LessonMutationPayload) => {
     body.append("readingContent", payload.readingContent);
   }
 
-  if (payload.assignmentInstructions) {
-    body.append("assignmentInstructions", payload.assignmentInstructions);
+  if (payload.quiz) {
+    body.append("quiz", payload.quiz);
   }
 
   if (payload.contentFile) {
