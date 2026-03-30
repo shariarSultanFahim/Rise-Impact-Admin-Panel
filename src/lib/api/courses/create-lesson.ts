@@ -17,6 +17,7 @@ export interface LessonMutationPayload {
   quiz?: string;
   contentFile?: File;
   attachments?: File[];
+  existingAttachments?: string[];
 }
 
 interface CreateLessonMutationPayload {
@@ -54,6 +55,12 @@ const buildLessonFormData = (payload: LessonMutationPayload) => {
   payload.attachments?.forEach((file) => {
     body.append("attachments", file);
   });
+
+  payload.existingAttachments?.forEach((attachmentUrl) => {
+    body.append("existingAttachments[]", attachmentUrl);
+  });
+
+  body.append("existingAttachments", JSON.stringify(payload.existingAttachments ?? []));
 
   return body;
 };

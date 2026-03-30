@@ -45,6 +45,12 @@ const buildLessonFormData = (payload: LessonMutationPayload) => {
     body.append("attachments", file);
   });
 
+  payload.existingAttachments?.forEach((attachmentUrl) => {
+    body.append("existingAttachments[]", attachmentUrl);
+  });
+
+  body.append("existingAttachments", JSON.stringify(payload.existingAttachments ?? []));
+
   return body;
 };
 

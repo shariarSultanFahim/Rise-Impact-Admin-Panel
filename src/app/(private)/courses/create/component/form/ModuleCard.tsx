@@ -53,6 +53,7 @@ export default function ModuleCard({
     }) ?? [];
 
   const lessonCount = lessonValues.length;
+  const visibleLessonCount = lessonValues.filter((lesson) => lesson?.isPublished !== false).length;
   const moduleBackendId = useWatch({
     control: form.control,
     name: `modules.${moduleIndex}.backendId`
@@ -123,7 +124,9 @@ export default function ModuleCard({
         />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {isModuleUpdating ? <span>Saving...</span> : null}
-          <span>{lessonCount} Draft</span>
+          <span>
+            {visibleLessonCount}/{lessonCount} Published
+          </span>
 
           <Button
             type="button"
@@ -148,6 +151,7 @@ export default function ModuleCard({
             const isSelected = isActive && lessonIndex === activeLessonIndex;
             const lesson = lessonValues[lessonIndex];
             const lessonTypeLabel = getLessonTypeLabel(lesson?.type);
+            const isVisible = lesson?.isPublished !== false;
             return (
               <div
                 key={lessonField.id}
@@ -202,8 +206,14 @@ export default function ModuleCard({
                     {lesson?.title || "New Lesson"}
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                      Draft
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] ${
+                        isVisible
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {isVisible ? "Published" : "Hidden"}
                     </span>
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       {lessonTypeLabel}

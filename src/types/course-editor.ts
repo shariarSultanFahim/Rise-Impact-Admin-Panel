@@ -33,9 +33,10 @@ export interface LessonItem {
   learningObjectives: string[];
   order: number;
   isVisible: boolean;
-  attachments: string[];
+  attachments: Array<string | { url?: string; name?: string }>;
   prerequisiteLesson?: string | null;
   readingContent?: string;
+  video?: string | { url?: string; secure_url?: string } | null;
   quiz?: string | { _id?: string; title?: string } | null;
   contentFile?: string;
   createdAt?: string;

@@ -12,7 +12,15 @@ const lessonSchema = z
     quizId: z.string().optional().default(""),
     objectives: z.array(z.string().min(2, "Objective is required")),
     prerequisites: z.array(z.string()),
-    attachments: z.array(z.string().min(2, "Attachment name is required")),
+    attachments: z.array(
+      z.union([
+        z.string().min(2, "Attachment name is required"),
+        z.object({
+          url: z.string().optional(),
+          name: z.string().optional()
+        })
+      ])
+    ),
     isPublished: z.boolean()
   })
   .superRefine((value, context) => {

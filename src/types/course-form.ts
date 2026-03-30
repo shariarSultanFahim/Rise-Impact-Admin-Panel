@@ -1,10 +1,16 @@
 export type LessonType = "video" | "reading" | "quiz";
 export type CourseStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
 
+export interface LessonAttachment {
+  url?: string;
+  name?: string;
+}
+
+export type LessonAttachmentValue = string | LessonAttachment;
+
 export interface LessonForm {
   id: string;
   backendId?: string;
-  isDraft?: boolean;
   title: string;
   type: LessonType;
   description: string;
@@ -12,7 +18,7 @@ export interface LessonForm {
   quizId?: string;
   objectives: string[];
   prerequisites: string[];
-  attachments: string[];
+  attachments: LessonAttachmentValue[];
   isPublished: boolean;
 }
 

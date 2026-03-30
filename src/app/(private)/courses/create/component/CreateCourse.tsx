@@ -35,7 +35,6 @@ import { courseFormSchema } from "./form/schema/course-form.schema";
 
 const createLessonDraft = (): LessonForm => ({
   id: crypto.randomUUID(),
-  isDraft: true,
   title: "",
   type: "video",
   description: "",
@@ -44,7 +43,7 @@ const createLessonDraft = (): LessonForm => ({
   objectives: [],
   prerequisites: [],
   attachments: [],
-  isPublished: false
+  isPublished: true
 });
 
 const createModule = (): ModuleForm => ({
@@ -91,6 +90,47 @@ const resolveQuizId = (val: unknown): string => {
   }
 
   return "";
+};
+
+const resolveResourceLink = (val: unknown): string => {
+  if (!val) {
+    return "";
+  }
+
+  if (typeof val === "string") {
+    return val;
+  }
+
+  if (typeof val === "object" && val !== null) {
+    const valueRecord = val as Record<string, unknown>;
+    const possibleKeys = ["url", "secure_url", "location", "path", "href", "fileUrl"];
+
+    for (const key of possibleKeys) {
+      const candidate = valueRecord[key];
+      if (typeof candidate === "string" && candidate.trim()) {
+        return candidate;
+      }
+    }
+  }
+
+  return "";
+};
+
+const resolveAttachmentUrl = (attachment: unknown): string | null => {
+  if (!attachment) {
+    return null;
+  }
+
+  if (typeof attachment === "string") {
+    return attachment;
+  }
+
+  if (typeof attachment === "object" && attachment !== null && "url" in attachment) {
+    const url = (attachment as Record<string, unknown>).url;
+    return typeof url === "string" && url.trim() ? url : null;
+  }
+
+  return null;
 };
 
 // The API may return `prerequisiteLesson` as a populated document object
@@ -150,6 +190,7 @@ export default function CreateCourse({
   const [isUpdatingCourse, setIsUpdatingCourse] = useState(false);
   const moduleDebounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const contentFiles = useRef<Record<string, File | null>>({});
+  const attachmentFiles = useRef<Record<string, File[]>>({});
 
   const form = useForm<CourseForm>({
     resolver: zodResolver(courseFormSchema),
@@ -374,6 +415,13 @@ export default function CreateCourse({
   const handleSelectLesson = (moduleIndex: number, lessonIndex: number) => {
     setActiveModuleIndex(moduleIndex);
     setActiveLessonIndex(lessonIndex);
+
+    const selectedLesson = form.getValues(`modules.${moduleIndex}.lessons.${lessonIndex}`);
+    if (!selectedLesson?.backendId || !courseId) {
+      return;
+    }
+
+    void handleEditLesson(moduleIndex, lessonIndex);
   };
 
   const handleMoveModule = async (fromIndex: number, toIndex: number) => {
@@ -498,6 +546,9 @@ export default function CreateCourse({
         title: lesson.title,
         type: toFormLessonType(lesson.type),
         description: lesson.description ?? "",
+        resourceLink: resolveResourceLink(
+          lesson.contentFile ?? lesson.readingContent ?? lesson.video ?? selectedLesson.resourceLink
+        ),
         objectives: lesson.learningObjectives ?? [],
         quizId: resolveQuizId(lesson.quiz),
         prerequisites: (() => {
@@ -505,8 +556,7 @@ export default function CreateCourse({
           return id ? [id] : [];
         })(),
         attachments: lesson.attachments ?? [],
-        isPublished: lesson.isVisible,
-        isDraft: false
+        isPublished: lesson.isVisible ?? true
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to load lesson data.";
@@ -540,18 +590,24 @@ export default function CreateCourse({
     try {
       setPendingLessonKey(lessonKey);
       const contentFile = contentFiles.current[lessonKey] ?? undefined;
+      const attachments = attachmentFiles.current[lessonKey] ?? [];
+      const existingAttachments = (lesson.attachments ?? [])
+        .map((attachment) => resolveAttachmentUrl(attachment))
+        .filter((attachmentUrl): attachmentUrl is string => Boolean(attachmentUrl));
       const payload = {
         title: lesson.title,
         type: toApiLessonType(lesson.type),
         description: lesson.description,
         learningObjectives: lesson.objectives,
-        isVisible: lesson.isPublished,
+        isVisible: lesson.isPublished ?? true,
         prerequisiteLesson: lesson.prerequisites[0],
         quiz: lesson.type === "quiz" ? lesson.quizId || undefined : undefined,
-        contentFile: lesson.type === "quiz" ? undefined : contentFile
+        contentFile: lesson.type === "quiz" ? undefined : contentFile,
+        attachments: attachments.length > 0 ? attachments : undefined,
+        existingAttachments: existingAttachments.length > 0 ? existingAttachments : undefined
       };
 
-      if (lesson.isDraft || !lesson.backendId) {
+      if (!lesson.backendId) {
         const response = await createLesson({
           courseId,
           moduleId,
@@ -566,6 +622,12 @@ export default function CreateCourse({
           title: createdLesson.title,
           type: toFormLessonType(createdLesson.type),
           description: createdLesson.description ?? "",
+          resourceLink: resolveResourceLink(
+            createdLesson.contentFile ??
+              createdLesson.readingContent ??
+              createdLesson.video ??
+              lesson.resourceLink
+          ),
           objectives: createdLesson.learningObjectives ?? [],
           quizId: resolveQuizId(createdLesson.quiz),
           prerequisites: (() => {
@@ -573,9 +635,10 @@ export default function CreateCourse({
             return id ? [id] : [];
           })(),
           attachments: createdLesson.attachments ?? [],
-          isPublished: createdLesson.isVisible,
-          isDraft: false
+          isPublished: createdLesson.isVisible ?? true
         });
+
+        delete attachmentFiles.current[lessonKey];
         toast.success(response.message || "Lesson created successfully.");
         return;
       }
@@ -595,6 +658,12 @@ export default function CreateCourse({
           title: updatedLesson.title,
           type: toFormLessonType(updatedLesson.type),
           description: updatedLesson.description ?? "",
+          resourceLink: resolveResourceLink(
+            updatedLesson.contentFile ??
+              updatedLesson.readingContent ??
+              updatedLesson.video ??
+              lesson.resourceLink
+          ),
           objectives: updatedLesson.learningObjectives ?? [],
           quizId: resolveQuizId(updatedLesson.quiz),
           prerequisites: (() => {
@@ -602,10 +671,11 @@ export default function CreateCourse({
             return id ? [id] : [];
           })(),
           attachments: updatedLesson.attachments ?? [],
-          isPublished: updatedLesson.isVisible,
-          isDraft: false
+          isPublished: updatedLesson.isVisible ?? true
         });
       }
+
+      delete attachmentFiles.current[lessonKey];
       toast.success(response.message || "Lesson updated successfully.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to save lesson.";
@@ -771,11 +841,13 @@ export default function CreateCourse({
                 lessonId={activeLesson.id}
                 quizOptions={quizOptions}
                 prerequisiteOptions={prerequisiteOptions}
-                isDraft={Boolean(activeLesson.isDraft)}
                 isSubmitting={pendingLessonKey === `${activeModuleIndex}-${activeLessonIndex}`}
                 onSubmitLesson={() => handleSaveLesson(activeModuleIndex, activeLessonIndex)}
                 onContentFileChange={(file) => {
                   contentFiles.current[`${activeModuleIndex}-${activeLessonIndex}`] = file;
+                }}
+                onAttachmentFilesChange={(files) => {
+                  attachmentFiles.current[`${activeModuleIndex}-${activeLessonIndex}`] = files;
                 }}
               />
             ) : (

@@ -36,6 +36,54 @@ const normalizeQuizId = (quiz: unknown): string => {
   return "";
 };
 
+const normalizeResourceLink = (resource: unknown): string => {
+  if (!resource) {
+    return "";
+  }
+
+  if (typeof resource === "string") {
+    return resource;
+  }
+
+  if (typeof resource === "object" && resource !== null) {
+    const resourceRecord = resource as Record<string, unknown>;
+    const possibleKeys = ["url", "secure_url", "location", "path", "href", "fileUrl"];
+
+    for (const key of possibleKeys) {
+      const value = resourceRecord[key];
+      if (typeof value === "string" && value.trim()) {
+        return value;
+      }
+    }
+  }
+
+  return "";
+};
+
+const normalizeAttachments = (attachments: unknown): LessonForm["attachments"] => {
+  if (!Array.isArray(attachments)) {
+    return [];
+  }
+
+  return attachments
+    .map((attachment) => {
+      if (typeof attachment === "string") {
+        return attachment;
+      }
+
+      if (typeof attachment === "object" && attachment !== null) {
+        const attachmentRecord = attachment as Record<string, unknown>;
+        return {
+          url: typeof attachmentRecord.url === "string" ? attachmentRecord.url : undefined,
+          name: typeof attachmentRecord.name === "string" ? attachmentRecord.name : undefined
+        };
+      }
+
+      return null;
+    })
+    .filter((attachment): attachment is NonNullable<typeof attachment> => attachment !== null);
+};
+
 const normalizeModules = (modules: unknown): ModuleForm[] => {
   if (!Array.isArray(modules)) {
     return [];
@@ -64,7 +112,6 @@ const normalizeModules = (modules: unknown): ModuleForm[] => {
         return {
           id: lessonId,
           backendId: lessonId,
-          isDraft: false,
           title:
             typeof lessonRecord.title === "string"
               ? lessonRecord.title
@@ -73,8 +120,12 @@ const normalizeModules = (modules: unknown): ModuleForm[] => {
             typeof lessonRecord.type === "string" ? lessonRecord.type : undefined
           ),
           description: typeof lessonRecord.description === "string" ? lessonRecord.description : "",
-          resourceLink:
-            typeof lessonRecord.contentFile === "string" ? lessonRecord.contentFile : "",
+          resourceLink: normalizeResourceLink(
+            lessonRecord.contentFile ??
+              lessonRecord.readingContent ??
+              lessonRecord.video ??
+              lessonRecord.resourceLink
+          ),
           quizId: normalizeQuizId(lessonRecord.quiz),
           objectives: Array.isArray(lessonRecord.learningObjectives)
             ? (lessonRecord.learningObjectives as string[])
@@ -83,10 +134,8 @@ const normalizeModules = (modules: unknown): ModuleForm[] => {
             typeof lessonRecord.prerequisiteLesson === "string" && lessonRecord.prerequisiteLesson
               ? [lessonRecord.prerequisiteLesson]
               : [],
-          attachments: Array.isArray(lessonRecord.attachments)
-            ? (lessonRecord.attachments as string[])
-            : [],
-          isPublished: Boolean(lessonRecord.isVisible)
+          attachments: normalizeAttachments(lessonRecord.attachments),
+          isPublished: lessonRecord.isVisible !== false
         } satisfies LessonForm;
       })
     } satisfies ModuleForm;

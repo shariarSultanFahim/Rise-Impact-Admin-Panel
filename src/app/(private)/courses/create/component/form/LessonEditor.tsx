@@ -30,10 +30,10 @@ interface LessonEditorProps {
   lessonId: string;
   quizOptions: Array<{ id: string; title: string }>;
   prerequisiteOptions: Array<{ id: string; title: string }>;
-  isDraft: boolean;
   isSubmitting: boolean;
   onSubmitLesson: () => void;
   onContentFileChange: (file: File | null) => void;
+  onAttachmentFilesChange: (files: File[]) => void;
 }
 
 export default function LessonEditor({
@@ -43,12 +43,13 @@ export default function LessonEditor({
   lessonId,
   quizOptions,
   prerequisiteOptions,
-  isDraft,
   isSubmitting,
   onSubmitLesson,
-  onContentFileChange
+  onContentFileChange,
+  onAttachmentFilesChange
 }: LessonEditorProps) {
   const [resourceFile, setResourceFile] = useState<File | null>(null);
+  const [selectedAttachmentFiles, setSelectedAttachmentFiles] = useState<File[]>([]);
 
   const objectives =
     useWatch({
@@ -67,9 +68,23 @@ export default function LessonEditor({
     name: `modules.${moduleIndex}.lessons.${lessonIndex}.type`
   });
 
+  const resourceLink = useWatch({
+    control: form.control,
+    name: `modules.${moduleIndex}.lessons.${lessonIndex}.resourceLink`
+  });
+
+  const backendLessonId = useWatch({
+    control: form.control,
+    name: `modules.${moduleIndex}.lessons.${lessonIndex}.backendId`
+  });
+
+  const isNewLesson = !backendLessonId;
+
   useEffect(() => {
     setResourceFile(null);
+    setSelectedAttachmentFiles([]);
     onContentFileChange(null);
+    onAttachmentFilesChange([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
@@ -80,11 +95,50 @@ export default function LessonEditor({
         ? "Quiz lessons do not require a file"
         : "Select Video File";
 
+  const existingResourceLink =
+    typeof resourceLink === "string" && resourceLink.trim().length > 0 ? resourceLink : null;
+
+  const existingResourceName = existingResourceLink
+    ? decodeURIComponent(existingResourceLink.split("?")[0]?.split("/").pop() || "existing-file")
+    : null;
+
+  const existingAttachments = attachments.map((attachment) => {
+    if (typeof attachment === "string") {
+      const baseName = attachment.split("?")[0]?.split("/").pop();
+      return {
+        name: decodeURIComponent(baseName || attachment),
+        url: /^https?:\/\//i.test(attachment) ? attachment : ""
+      };
+    }
+
+    if (typeof attachment === "object" && attachment !== null) {
+      const attachmentRecord = attachment as Record<string, unknown>;
+      const rawUrl =
+        typeof attachmentRecord.url === "string" ? attachmentRecord.url : attachmentRecord.name;
+      const rawName =
+        typeof attachmentRecord.name === "string" && attachmentRecord.name.trim()
+          ? attachmentRecord.name
+          : typeof rawUrl === "string"
+            ? rawUrl.split("?")[0]?.split("/").pop()
+            : "Attachment";
+
+      return {
+        name: decodeURIComponent(rawName || "Attachment"),
+        url: typeof rawUrl === "string" && /^https?:\/\//i.test(rawUrl) ? rawUrl : ""
+      };
+    }
+
+    return {
+      name: "Attachment",
+      url: ""
+    };
+  });
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="text-base font-semibold">
-          {isDraft ? "Create New Lesson" : "Edit Lesson"}
+          {isNewLesson ? "Create New Lesson" : "Edit Lesson"}
         </CardTitle>
         <p className="text-xs text-muted-foreground">Configure lesson content and settings</p>
       </CardHeader>
@@ -182,6 +236,36 @@ export default function LessonEditor({
                 </p>
               )}
             </div>
+
+            {existingResourceLink && !resourceFile ? (
+              <div className="mt-4 space-y-3 rounded-lg border border-muted bg-muted/20 p-3 text-left">
+                <p className="text-xs font-medium text-foreground">
+                  Existing {lessonType === "reading" ? "reading file" : "video"}:
+                  <span className="ml-1 font-normal text-muted-foreground">
+                    {existingResourceName}
+                  </span>
+                </p>
+
+                {lessonType === "video" ? (
+                  <video
+                    src={existingResourceLink}
+                    controls
+                    className="max-h-44 w-full rounded-md border border-muted bg-black"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                ) : null}
+
+                <a
+                  href={existingResourceLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex text-xs font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Open current file
+                </a>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -296,64 +380,99 @@ export default function LessonEditor({
           )}
         />
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Attachments</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              aria-label="Add attachment"
-              onClick={() =>
-                form.setValue(
-                  `modules.${moduleIndex}.lessons.${lessonIndex}.attachments`,
-                  [...attachments, ""],
-                  { shouldDirty: true }
-                )
-              }
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+        <div className="space-y-3">
+          <Label>Attachments (PDF)</Label>
+          <div className="rounded-lg border border-dashed border-muted bg-muted/10 p-3">
+            <Input
+              type="file"
+              accept="application/pdf,.pdf"
+              multiple
+              className="bg-white"
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                setSelectedAttachmentFiles(files);
+                onAttachmentFilesChange(files);
+              }}
+            />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Upload one or more PDF files as lesson attachments.
+            </p>
           </div>
-          {attachments.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Enter file name (e.g. study-guide.pdf)</p>
-          ) : (
-            attachments.map((_, index) => (
-              <div key={`${lessonId}-attachment-${index}`} className="flex items-center gap-2">
-                <FormField
-                  control={form.control}
-                  name={`modules.${moduleIndex}.lessons.${lessonIndex}.attachments.${index}`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input className="bg-white" placeholder="Enter file name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="hover:bg-red-500 hover:text-white"
-                  size="icon-sm"
-                  aria-label="Remove attachment"
-                  onClick={() => {
-                    const nextAttachments = attachments.filter(
-                      (_, itemIndex) => itemIndex !== index
-                    );
-                    form.setValue(
-                      `modules.${moduleIndex}.lessons.${lessonIndex}.attachments`,
-                      nextAttachments,
-                      { shouldDirty: true }
-                    );
-                  }}
+
+          {selectedAttachmentFiles.length > 0 ? (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-foreground">Selected attachments</p>
+              {selectedAttachmentFiles.map((file, index) => (
+                <div
+                  key={`${lessonId}-selected-attachment-${index}`}
+                  className="flex items-center gap-2"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))
-          )}
+                  <p className="flex-1 truncate text-xs text-muted-foreground">{file.name}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Remove selected attachment"
+                    className="hover:bg-red-500 hover:text-white"
+                    onClick={() => {
+                      const nextFiles = selectedAttachmentFiles.filter(
+                        (_, fileIndex) => fileIndex !== index
+                      );
+                      setSelectedAttachmentFiles(nextFiles);
+                      onAttachmentFilesChange(nextFiles);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {existingAttachments.length > 0 ? (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-foreground">Existing attachments</p>
+              {existingAttachments.map((attachment, index) => {
+                return (
+                  <div key={`${lessonId}-existing-attachment-${index}`} className="flex gap-2">
+                    {attachment.url ? (
+                      <a
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 truncate text-xs text-primary underline-offset-4 hover:underline"
+                      >
+                        {attachment.name}
+                      </a>
+                    ) : (
+                      <p className="flex-1 truncate text-xs text-muted-foreground">
+                        {attachment.name}
+                      </p>
+                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Remove existing attachment"
+                      className="hover:bg-red-500 hover:text-white"
+                      onClick={() => {
+                        const nextAttachments = attachments.filter(
+                          (_, attachmentIndex) => attachmentIndex !== index
+                        );
+                        form.setValue(
+                          `modules.${moduleIndex}.lessons.${lessonIndex}.attachments`,
+                          nextAttachments,
+                          { shouldDirty: true }
+                        );
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
 
         <FormField
@@ -382,7 +501,7 @@ export default function LessonEditor({
           disabled={isSubmitting}
         >
           <BookOpen className="h-4 w-4" />
-          {isSubmitting ? "Saving..." : isDraft ? "Create Lesson" : "Update Lesson"}
+          {isSubmitting ? "Saving..." : isNewLesson ? "Create Lesson" : "Update Lesson"}
         </Button>
       </CardContent>
     </Card>
