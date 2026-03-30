@@ -50,7 +50,7 @@ export default function QuizListPanel({
   onPageChange
 }: QuizListPanelProps) {
   return (
-    <Card className="bg-white">
+    <Card className="h-fit self-start bg-white">
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <CardTitle>Quiz List</CardTitle>

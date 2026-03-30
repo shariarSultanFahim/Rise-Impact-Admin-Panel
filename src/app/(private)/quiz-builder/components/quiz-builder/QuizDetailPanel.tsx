@@ -50,9 +50,9 @@ export default function QuizDetailPanel({
             </div>
 
             <div className="grid gap-2 rounded-lg border border-border p-3 text-sm">
-              <p>
+              {/* <p>
                 <span className="font-medium">Course:</span> {selectedQuiz.course}
-              </p>
+              </p> */}
               <p>
                 <span className="font-medium">Time Limit:</span>{" "}
                 {selectedQuiz.settings.timeLimit === 0

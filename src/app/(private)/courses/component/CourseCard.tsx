@@ -142,7 +142,7 @@ export default function CourseCard({ course }: CourseCardProps) {
       </Card>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-white sm:max-w-md">
+        <DialogContent className="space-y-4 bg-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Course</DialogTitle>
             <DialogDescription>

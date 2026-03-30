@@ -27,7 +27,7 @@ export default function QuizDeleteDialog({
 }: QuizDeleteDialogProps) {
   return (
     <Dialog open={Boolean(quizToDelete)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white sm:max-w-md">
+      <DialogContent className="space-y-4 bg-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Delete Quiz</DialogTitle>
           <DialogDescription>

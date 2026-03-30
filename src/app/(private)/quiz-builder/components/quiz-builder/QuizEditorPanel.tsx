@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 
 import type { CourseOption, QuizFormData, QuizQuestionType } from "@/types/quiz-builder-manage";
@@ -33,10 +33,12 @@ interface QuizEditorPanelProps {
   mode: EditorMode;
   form: UseFormReturn<QuizFormData>;
   fields: UseFieldArrayReturn<QuizFormData, "questions", "id">["fields"];
+  editingQuizId?: string | null;
   courseOptions: CourseOption[];
   isSaving: boolean;
   onSubmit: (values: QuizFormData) => void;
   onCancel: () => void;
+  onRequestDelete?: (quiz: { id: string; title: string }) => void;
   onAddQuestion: (type: QuizQuestionType) => void;
   onTypeChange: (index: number, type: QuizQuestionType) => void;
   onRemoveQuestion: (index: number) => void;
@@ -51,10 +53,12 @@ export default function QuizEditorPanel({
   mode,
   form,
   fields,
+  editingQuizId,
   courseOptions,
   isSaving,
   onSubmit,
   onCancel,
+  onRequestDelete,
   onAddQuestion,
   onTypeChange,
   onRemoveQuestion,
@@ -257,6 +261,31 @@ export default function QuizEditorPanel({
             </div>
 
             <div className="flex items-center justify-end gap-2">
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => onAddQuestion("MCQ")}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add MCQ
+                </Button>
+                <Button type="button" variant="outline" onClick={() => onAddQuestion("TRUE_FALSE")}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add True/False
+                </Button>
+              </div>
+              {mode === "edit" && editingQuizId && onRequestDelete ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() =>
+                    onRequestDelete({
+                      id: editingQuizId,
+                      title: form.getValues("title") || "this quiz"
+                    })
+                  }
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Quiz
+                </Button>
+              ) : null}
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>

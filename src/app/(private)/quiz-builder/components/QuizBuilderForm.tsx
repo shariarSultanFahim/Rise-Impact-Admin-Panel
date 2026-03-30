@@ -319,10 +319,12 @@ export default function QuizBuilderForm() {
             mode={editorMode}
             form={form}
             fields={fields}
+            editingQuizId={editingQuizId}
             courseOptions={courseOptions}
             isSaving={isSaving}
             onSubmit={handleSubmit}
             onCancel={handleCancelEditing}
+            onRequestDelete={setQuizToDelete}
             onAddQuestion={handleAddQuestion}
             onTypeChange={handleTypeChange}
             onRemoveQuestion={remove}
