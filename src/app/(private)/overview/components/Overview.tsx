@@ -194,7 +194,7 @@ export default function Overview({
           </CardHeader>
           <CardContent className="space-y-4">
             {isActivityPending
-              ? Array.from({ length: 4 }).map((_, index) => (
+              ? Array.from({ length: 5 }).map((_, index) => (
                   <div
                     key={`activity-skeleton-${index}`}
                     className="flex items-start gap-3 rounded-md bg-white p-2"
