@@ -85,7 +85,7 @@ export default function UserDetailsSkeleton() {
         <CardContent className="space-y-3">
           {Array.from({ length: 5 }).map((_, index) => (
             <div key={index} className="flex gap-3 border-b border-muted/40 pb-3">
-              <Skeleton className="h-2 w-2 flex-shrink-0 rounded-full" />
+              <Skeleton className="h-2 w-2 shrink-0 rounded-full" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-64" />
                 <Skeleton className="h-3 w-24" />

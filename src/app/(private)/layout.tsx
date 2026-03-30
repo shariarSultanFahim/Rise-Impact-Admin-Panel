@@ -1,9 +1,13 @@
-import { AppSidebar } from "@/components/layouts/app-sidebar";
+import type { ReactNode } from "react";
+
+import { withLayout, withPrivateRoute } from "@/helpers/with-route-guard";
+
 import { Separator } from "@/components/ui";
 import { DynamicBreadcrumb } from "@/components/ui/dynamic-breadcrumb";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/app/(private)/app-sidebar";
 
-export default function PrivateLayout({ children }: { children: React.ReactNode }) {
+function PrivateShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -18,3 +22,13 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
     </SidebarProvider>
   );
 }
+
+async function PrivateLayoutContent({ children }: { children: ReactNode }) {
+  return <>{children}</>;
+}
+
+const PrivateLayout = withPrivateRoute(withLayout(PrivateLayoutContent, PrivateShell), {
+  redirectTo: "/login"
+});
+
+export default PrivateLayout;

@@ -1,32 +1,20 @@
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
+"use client";
 
-import { getUserDetails } from "@/data/user-details";
+import { useParams } from "next/navigation";
 
-import { UserDetails, UserDetailsSkeleton } from "./components";
+import UserDetailsClient from "./components/user-details-client";
 
-interface UserDetailsPageProps {
-  params: Promise<{ id: string }>;
-}
+export default function UserDetailsPage() {
+  const params = useParams();
+  const userId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-async function UserDetailsContent({ userId }: { userId: string }) {
-  const data = await getUserDetails(userId);
-
-  if (!data) {
-    notFound();
+  if (!userId) {
+    return null;
   }
-
-  return <UserDetails data={data} />;
-}
-
-export default async function UserDetailsPage({ params }: UserDetailsPageProps) {
-  const { id } = await params;
 
   return (
     <section className="flex flex-col gap-6">
-      <Suspense fallback={<UserDetailsSkeleton />}>
-        <UserDetailsContent userId={id} />
-      </Suspense>
+      <UserDetailsClient userId={userId} />
     </section>
   );
 }

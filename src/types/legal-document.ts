@@ -1,24 +1,54 @@
-export type LegalDocumentType =
-  | "privacy-policy"
-  | "terms-and-conditions"
-  | "cookie-policy"
-  | "disclaimer"
-  | "return-refund-policy"
-  | "eula";
-
-export interface LegalDocumentOption {
-  id: LegalDocumentType;
-  label: string;
-  description: string;
+export interface LegalPageItem {
+  slug: string;
+  title: string;
+  updatedAt: string;
 }
 
-export interface LegalDocumentItem {
-  type: LegalDocumentType;
+export interface LegalPageDetails {
+  _id: string;
+  slug: string;
+  title: string;
+  content: string;
+  createdAt?: string;
+  updatedAt: string;
+}
+
+export interface GetAllLegalResponse {
+  success: boolean;
+  message: string;
+  data: LegalPageItem[];
+}
+
+export interface DetailsLegalResponse {
+  success: boolean;
+  message: string;
+  data: LegalPageDetails;
+}
+
+export interface CreateLegalPayload {
   title: string;
   content: string;
 }
 
-export interface LegalDocumentsData {
-  options: LegalDocumentOption[];
-  documents: LegalDocumentItem[];
+export interface CreateLegalResponse {
+  success: boolean;
+  message: string;
+  data: LegalPageDetails;
+}
+
+export interface DeleteLegalResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface UpdateLegalPayload {
+  slug: string;
+  title?: string;
+  content?: string;
+}
+
+export interface UpdateLegalResponse {
+  success: boolean;
+  message: string;
+  data: LegalPageDetails;
 }

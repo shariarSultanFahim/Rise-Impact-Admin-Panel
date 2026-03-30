@@ -15,11 +15,16 @@ interface CurriculumBuilderProps {
   modules: FieldArrayWithId<CourseForm, "modules", "id">[];
   activeModuleIndex: number;
   activeLessonIndex: number;
+  pendingModuleId: string | null;
   onAddModule: () => void;
+  onModuleTitleChange: (moduleIndex: number, nextTitle: string) => void;
+  onMoveModule: (fromIndex: number, toIndex: number) => void;
   onRemoveModule: (moduleIndex: number) => void;
   onAddLesson: (moduleIndex: number) => void;
+  onMoveLesson: (moduleIndex: number, fromIndex: number, toIndex: number) => void;
   onRemoveLesson: (moduleIndex: number, lessonIndex: number) => void;
   onSelectLesson: (moduleIndex: number, lessonIndex: number) => void;
+  onEditLesson: (moduleIndex: number, lessonIndex: number) => void;
 }
 
 export default function CurriculumBuilder({
@@ -27,11 +32,16 @@ export default function CurriculumBuilder({
   modules,
   activeModuleIndex,
   activeLessonIndex,
+  pendingModuleId,
   onAddModule,
+  onModuleTitleChange,
+  onMoveModule,
   onRemoveModule,
   onAddLesson,
+  onMoveLesson,
   onRemoveLesson,
-  onSelectLesson
+  onSelectLesson,
+  onEditLesson
 }: CurriculumBuilderProps) {
   return (
     <Card className="shadow-sm">
@@ -55,10 +65,15 @@ export default function CurriculumBuilder({
               moduleIndex={moduleIndex}
               isActive={moduleIndex === activeModuleIndex}
               activeLessonIndex={activeLessonIndex}
+              pendingModuleId={pendingModuleId}
               onSelectLesson={onSelectLesson}
+              onModuleTitleChange={onModuleTitleChange}
+              onMoveModule={onMoveModule}
               onRemoveModule={onRemoveModule}
               onAddLesson={onAddLesson}
+              onMoveLesson={onMoveLesson}
               onRemoveLesson={onRemoveLesson}
+              onEditLesson={onEditLesson}
             />
           ))
         )}

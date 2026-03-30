@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+import type { LoginErrorResponse } from "@/types/auth";
+import { LOGIN_PATH, RESET_PASSWORD_TOKEN_STORAGE_KEY } from "@/constants/auth";
+
+import { useResetPassword } from "@/hooks";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +29,8 @@ import { PasswordResetFormData, passwordResetSchema } from "../schema/reset.pass
 
 export default function PasswordResetForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { mutateAsync: resetPassword, isPending } = useResetPassword();
 
   const form = useForm<PasswordResetFormData>({
     resolver: zodResolver(passwordResetSchema),
@@ -32,17 +41,39 @@ export default function PasswordResetForm() {
   });
 
   async function onSubmit(data: PasswordResetFormData) {
+    const resetToken = sessionStorage.getItem(RESET_PASSWORD_TOKEN_STORAGE_KEY);
+
+    if (!resetToken) {
+      toast.error("Reset session expired. Please request OTP again.");
+      router.replace("/forgot-password");
+      return;
+    }
+
     setIsLoading(true);
-    toast.loading("Updating password...");
+    const toastId = toast.loading("Updating password...");
+
     try {
-      //delay of 1 sec
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // TODO: Implement password reset API call
-      console.log("Password reset attempt:", data);
+      const response = await resetPassword({
+        token: resetToken,
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword
+      });
+
+      sessionStorage.removeItem(RESET_PASSWORD_TOKEN_STORAGE_KEY);
+      toast.success(response.message || "Password updated successfully!", { id: toastId });
+      router.replace(LOGIN_PATH);
+    } catch (error) {
+      const message = axios.isAxiosError<LoginErrorResponse>(error)
+        ? (error.response?.data?.errorMessages?.[0]?.message ??
+          error.response?.data?.message ??
+          error.message)
+        : error instanceof Error
+          ? error.message
+          : "Unable to update password. Please try again.";
+
+      toast.error(message, { id: toastId });
     } finally {
       setIsLoading(false);
-      toast.success("Password updated successfully!");
-      window.location.href = "/";
     }
   }
 
@@ -76,7 +107,7 @@ export default function PasswordResetForm() {
                     <Input
                       placeholder="8 digits at least, with letters and numbers"
                       type="password"
-                      disabled={isLoading}
+                      disabled={isLoading || isPending}
                       className="bg-gray-50"
                       {...field}
                     />
@@ -97,7 +128,7 @@ export default function PasswordResetForm() {
                     <Input
                       placeholder="Confirm your new password"
                       type="password"
-                      disabled={isLoading}
+                      disabled={isLoading || isPending}
                       className="bg-gray-50"
                       {...field}
                     />
@@ -110,10 +141,10 @@ export default function PasswordResetForm() {
             {/* Login Button */}
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isPending}
               className="h-auto w-full bg-[#576045] py-2 font-semibold text-white hover:bg-[#4a5539]"
             >
-              {isLoading ? "Updating password..." : "UPDATE"}
+              {isLoading || isPending ? "Updating password..." : "UPDATE"}
             </Button>
           </form>
         </Form>

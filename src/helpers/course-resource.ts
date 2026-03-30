@@ -6,7 +6,7 @@ const MAX_RESOURCE_SIZE = 50 * 1024 * 1024;
 const RESOURCE_FOLDERS: Record<LessonType, string> = {
   video: "videos",
   reading: "reading",
-  assignment: "assignments"
+  quiz: "quiz"
 };
 
 const sleep = (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));

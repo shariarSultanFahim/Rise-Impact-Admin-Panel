@@ -1,22 +1,20 @@
-import { Suspense } from "react";
+"use client";
 
-import { getUserManagementData } from "@/data/user-management";
+import { useState } from "react";
+
+import type { UserManageQueryParams } from "@/types/users-manage";
 
 import UserManagement from "./component/UserManagement";
-import UserManagementSkeleton from "./component/UserManagementSkeleton";
-
-async function UserManagementContent() {
-  const data = await getUserManagementData();
-
-  return <UserManagement data={data} />;
-}
 
 export default function UserManagementPage() {
+  const [params, setParams] = useState<UserManageQueryParams>({
+    page: 1,
+    limit: 10
+  });
+
   return (
     <section className="flex flex-col gap-6">
-      <Suspense fallback={<UserManagementSkeleton />}>
-        <UserManagementContent />
-      </Suspense>
+      <UserManagement params={params} onParamsChange={setParams} />
     </section>
   );
 }

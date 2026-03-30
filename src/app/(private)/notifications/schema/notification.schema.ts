@@ -4,21 +4,21 @@ export const notificationSchema = zod
   .object({
     title: zod
       .string()
-      .min(3, "Title must be at least 3 characters")
-      .max(80, "Title must be 80 characters or less"),
-    message: zod
+      .min(1, "Title is required")
+      .max(200, "Title must be 200 characters or less"),
+    text: zod
       .string()
-      .min(10, "Message must be at least 10 characters")
-      .max(500, "Message must be 500 characters or less"),
-    audience: zod.string().min(1, "Select an audience"),
+      .min(1, "Message is required")
+      .max(5000, "Message must be 5000 characters or less"),
+    audience: zod.enum(["all" as const, "course" as const]),
     courseId: zod.string().optional()
   })
   .superRefine((values, context) => {
-    if (values.audience === "specific-course" && !values.courseId) {
+    if (values.audience === "course" && !values.courseId) {
       context.addIssue({
         code: zod.ZodIssueCode.custom,
         path: ["courseId"],
-        message: "Select a course"
+        message: "Select a course when targeting a specific course"
       });
     }
   });

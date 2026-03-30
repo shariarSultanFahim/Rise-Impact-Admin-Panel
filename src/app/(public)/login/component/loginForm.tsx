@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+import type { LoginErrorResponse } from "@/types/auth";
+import { AUTH_SESSION_COOKIE, DEFAULT_AUTHENTICATED_PATH } from "@/constants/auth";
+
+import { cookie } from "@/lib/cookie-client";
+
+import { buildSessionFromLoginResponse, useLogin } from "@/hooks";
 
 import { Checkbox } from "@/components/ui";
 import { Button } from "@/components/ui/button";
@@ -23,27 +31,38 @@ import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginFormData } from "../schema/login.schema";
 
 export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { mutateAsync: login, isPending } = useLogin();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: ""
     }
   });
 
   async function onSubmit(data: LoginFormData) {
-    setIsLoading(true);
-    toast.loading("Logging in...");
+    const loadingToastId = toast.loading("Logging in...");
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // TODO: Implement login API call
-      console.log("Login attempt:", data);
-    } finally {
-      setIsLoading(false);
-      toast.success("Login successful!");
-      window.location.href = "/";
+      const response = await login(data);
+      const session = buildSessionFromLoginResponse(response);
+
+      cookie.set(AUTH_SESSION_COOKIE, JSON.stringify(session));
+
+      toast.success("Login successful!", { id: loadingToastId });
+      router.replace(DEFAULT_AUTHENTICATED_PATH);
+    } catch (error) {
+      const message = axios.isAxiosError<LoginErrorResponse>(error)
+        ? (error.response?.data?.errorMessages?.[0]?.message ??
+          error.response?.data?.message ??
+          error.message)
+        : error instanceof Error
+          ? error.message
+          : "Login failed. Please check your credentials and try again.";
+
+      toast.error(message, { id: loadingToastId });
     }
   }
 
@@ -66,15 +85,15 @@ export default function LoginForm() {
             {/* Username Field */}
             <FormField
               control={form.control}
-              name="username"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-foreground">User Name</FormLabel>
+                  <FormLabel className="text-sm text-foreground">Email</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="hannah.green@test.com"
                       type="text"
-                      disabled={isLoading}
+                      disabled={isPending}
                       className="bg-gray-50"
                       {...field}
                     />
@@ -95,7 +114,7 @@ export default function LoginForm() {
                     <Input
                       placeholder="Password123@"
                       type="password"
-                      disabled={isLoading}
+                      disabled={isPending}
                       className="bg-gray-50"
                       {...field}
                     />
@@ -116,10 +135,10 @@ export default function LoginForm() {
             {/* Login Button */}
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
               className="h-auto w-full bg-[#576045] py-2 font-semibold text-white hover:bg-[#4a5539]"
             >
-              {isLoading ? "Logging in..." : "LOG IN"}
+              {isPending ? "Logging in..." : "LOG IN"}
             </Button>
           </form>
         </Form>

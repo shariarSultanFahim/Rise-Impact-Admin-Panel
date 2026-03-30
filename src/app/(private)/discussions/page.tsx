@@ -1,21 +1,21 @@
-import { Suspense } from "react";
+"use client";
 
-import { getDiscussionsData } from "@/data/discussions";
+import { useState } from "react";
 
-import { Discussions, DiscussionsSkeleton } from "./component";
+import type { DiscussionQueryParams } from "@/types";
 
-async function DiscussionsContent() {
-  const data = await getDiscussionsData();
-
-  return <Discussions data={data} />;
-}
+import { Discussions } from "./component";
 
 export default function DiscussionsPage() {
+  const [params, setParams] = useState<DiscussionQueryParams>({
+    page: 1,
+    limit: 3,
+    sort: "-createdAt"
+  });
+
   return (
     <section className="flex flex-col gap-6">
-      <Suspense fallback={<DiscussionsSkeleton />}>
-        <DiscussionsContent />
-      </Suspense>
+      <Discussions params={params} onParamsChange={setParams} />
     </section>
   );
 }

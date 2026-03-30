@@ -1,19 +1,14 @@
 import { z } from "zod";
 
-const legalDocumentTypes = [
-  "privacy-policy",
-  "terms-and-conditions",
-  "cookie-policy",
-  "disclaimer",
-  "return-refund-policy",
-  "eula"
-] as const;
-
 export const termsSchema = z.object({
-  type: z.enum(legalDocumentTypes, {
-    message: "Select a legal document type"
-  }),
-  content: z.string().min(10, "Content must be at least 10 characters")
+  slug: z.string().min(1, "Select a legal document"),
+  content: z.string()
 });
 
 export type TermsFormData = z.infer<typeof termsSchema>;
+
+export const addLegalSchema = z.object({
+  title: z.string().min(1, "Title is required")
+});
+
+export type AddLegalFormData = z.infer<typeof addLegalSchema>;

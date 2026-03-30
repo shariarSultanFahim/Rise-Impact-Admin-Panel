@@ -146,12 +146,12 @@ export default function CourseDetailsForm({
                 <FormControl>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Active" />
+                      <SelectValue placeholder="DRAFT" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="In Active">In Active</SelectItem>
-                      <SelectItem value="Upcoming">Upcoming</SelectItem>
+                      <SelectItem value="DRAFT">DRAFT</SelectItem>
+                      <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
+                      <SelectItem value="SCHEDULED">SCHEDULED</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -162,34 +162,27 @@ export default function CourseDetailsForm({
 
           <FormField
             control={form.control}
-            name="publishedAt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Published Schedule (Optional)</FormLabel>
-                <FormControl>
-                  <Input className="bg-white" type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Provide a detailed description of what students will learn..."
-                    className="min-h-[120px] bg-white"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const charCount = field.value.length;
+
+              return (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Description</FormLabel>
+                    <span className="text-xs text-muted-foreground">{charCount} characters</span>
+                  </div>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Provide a detailed description of what students will learn..."
+                      className="min-h-[120px] bg-white"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
       </CardContent>

@@ -1,101 +1,178 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-import { BarChart3, BookOpen, Pencil, Trash2, Users } from "lucide-react";
+import { BarChart3, BookOpen, Loader2, Pencil, Trash2, Users } from "lucide-react";
+import { toast } from "sonner";
 
-import type { CourseCardItem } from "@/types/courses";
+import { useDeleteCourse } from "@/lib/api/courses/delete-course";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import type { CourseManageItem, CourseManageStatus } from "@/types";
 
-const STATUS_STYLES: Record<CourseCardItem["status"], string> = {
-  Active: "bg-emerald-100 text-emerald-700",
-  "In Active": "bg-slate-100 text-slate-600",
-  Upcoming: "bg-amber-100 text-amber-700"
+const STATUS_STYLES: Record<CourseManageStatus, string> = {
+  DRAFT: "bg-slate-100 text-slate-600",
+  PUBLISHED: "bg-emerald-100 text-emerald-700",
+  SCHEDULED: "bg-amber-100 text-amber-700",
+  ARCHIVED: "bg-red-100 text-red-700"
 };
 
+const PLACEHOLDER_THUMBNAIL = "/logo.png";
+
 interface CourseCardProps {
-  course: CourseCardItem;
+  course: CourseManageItem;
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleNavigate = () => {
-    router.push(`/courses/edit/${course.id}`);
+    router.push(`/courses/edit/${course.slug}`);
+  };
+  const { mutate: deleteCourse, isPending: isDeletingCourse } = useDeleteCourse();
+  const handleDelete = ({ id }: { id: string }) => {
+    deleteCourse(
+      { courseId: id },
+      {
+        onSuccess: () => {
+          toast.success("Course deleted successfully");
+          setIsDeleteDialogOpen(false);
+          router.refresh();
+        },
+        onError: () => {
+          toast.error("Failed to delete course. Please try again.");
+        }
+      }
+    );
   };
 
   return (
-    <Card
-      className="cursor-pointer overflow-hidden border-muted/60 bg-card pt-0 shadow-sm"
-      role="button"
-      tabIndex={0}
-      aria-label={`Edit ${course.title}`}
-      onClick={handleNavigate}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          handleNavigate();
-        }
-      }}
-    >
-      <figure className="relative h-40 w-full overflow-hidden">
-        <Image src={course.imageUrl} alt={course.title} fill className="object-cover" />
-        <figcaption className="sr-only">{course.title} course thumbnail</figcaption>
-        <Badge className={`absolute top-3 right-3 ${STATUS_STYLES[course.status]}`}>
-          {course.status}
-        </Badge>
-      </figure>
-      <CardContent className="space-y-4 p-4">
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-foreground">{course.title}</h3>
-        </div>
-        <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground">
-          <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
-            <BookOpen className="h-4 w-4 text-foreground" />
-            <span className="text-[11px]">Modules</span>
-            <span className="text-sm font-semibold text-foreground">{course.modules}</span>
+    <>
+      <Card
+        className="cursor-pointer overflow-hidden border-muted/60 bg-card pt-0 shadow-sm"
+        role="button"
+        tabIndex={0}
+        aria-label={`Edit ${course.title}`}
+        onClick={handleNavigate}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleNavigate();
+          }
+        }}
+      >
+        <figure className="relative h-40 w-full overflow-hidden">
+          <Image
+            src={course.thumbnail || PLACEHOLDER_THUMBNAIL}
+            alt={course.title}
+            fill
+            className="object-cover"
+          />
+          <figcaption className="sr-only">{course.title} course thumbnail</figcaption>
+          <Badge className={`absolute top-3 right-3 ${STATUS_STYLES[course.status]}`}>
+            {course.status}
+          </Badge>
+        </figure>
+        <CardContent className="space-y-4 p-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground">{course.title}</h3>
           </div>
-          <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
-            <Users className="h-4 w-4 text-foreground" />
-            <span className="text-[11px]">Students</span>
-            <span className="text-sm font-semibold text-foreground">{course.students}</span>
+          <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground">
+            <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
+              <BookOpen className="h-4 w-4 text-foreground" />
+              <span className="text-[11px]">Lessons</span>
+              <span className="text-sm font-semibold text-foreground">{course.totalLessons}</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
+              <Users className="h-4 w-4 text-foreground" />
+              <span className="text-[11px]">Enrolled</span>
+              <span className="text-sm font-semibold text-foreground">
+                {course.enrollmentCount}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
+              <BarChart3 className="h-4 w-4 text-foreground" />
+              <span className="text-[11px]">Rating</span>
+              <span className="text-sm font-semibold text-foreground">{course.averageRating}</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center gap-1 rounded-xl bg-[#E9EAEA] p-2">
-            <BarChart3 className="h-4 w-4 text-foreground" />
-            <span className="text-[11px]">Complete</span>
-            <span className="text-sm font-semibold text-foreground">{course.completionRate}%</span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-2 border-primary"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleNavigate();
+              }}
+              aria-label={`Edit ${course.title}`}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              size="icon-sm"
+              aria-label="Delete course"
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsDeleteDialogOpen(true);
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="flex-1 gap-2 border-primary"
-            onClick={(event) => {
-              event.stopPropagation();
-              handleNavigate();
-            }}
-          >
-            <Pencil className="h-4 w-4" />
-            Edit
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-            size="icon-sm"
-            aria-label="Delete course"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="space-y-4 bg-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete
+              <span className="font-medium text-foreground"> {course.title}</span>? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => handleDelete({ id: course._id })}
+              disabled={isDeletingCourse}
+            >
+              {isDeletingCourse ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Confirm Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

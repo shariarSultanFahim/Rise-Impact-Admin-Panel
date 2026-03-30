@@ -15,10 +15,15 @@ interface ModuleCardProps {
   moduleIndex: number;
   isActive: boolean;
   activeLessonIndex: number;
+  pendingModuleId: string | null;
   onSelectLesson: (moduleIndex: number, lessonIndex: number) => void;
+  onModuleTitleChange: (moduleIndex: number, nextTitle: string) => void;
+  onMoveModule: (fromIndex: number, toIndex: number) => void;
   onRemoveModule: (moduleIndex: number) => void;
   onAddLesson: (moduleIndex: number) => void;
+  onMoveLesson: (moduleIndex: number, fromIndex: number, toIndex: number) => void;
   onRemoveLesson: (moduleIndex: number, lessonIndex: number) => void;
+  onEditLesson: (moduleIndex: number, lessonIndex: number) => void;
 }
 
 export default function ModuleCard({
@@ -26,10 +31,15 @@ export default function ModuleCard({
   moduleIndex,
   isActive,
   activeLessonIndex,
+  pendingModuleId,
   onSelectLesson,
+  onModuleTitleChange,
+  onMoveModule,
   onRemoveModule,
   onAddLesson,
-  onRemoveLesson
+  onMoveLesson,
+  onRemoveLesson,
+  onEditLesson
 }: ModuleCardProps) {
   const { fields } = useFieldArray({
     control: form.control,
@@ -43,13 +53,19 @@ export default function ModuleCard({
     }) ?? [];
 
   const lessonCount = lessonValues.length;
+  const visibleLessonCount = lessonValues.filter((lesson) => lesson?.isPublished !== false).length;
+  const moduleBackendId = useWatch({
+    control: form.control,
+    name: `modules.${moduleIndex}.backendId`
+  });
+  const isModuleUpdating = Boolean(moduleBackendId && moduleBackendId === pendingModuleId);
 
   const getLessonTypeLabel = (type?: string) => {
     if (type === "reading") {
       return "Reading";
     }
-    if (type === "assignment") {
-      return "Assignment";
+    if (type === "quiz") {
+      return "Quiz";
     }
     return "Video";
   };
@@ -58,14 +74,33 @@ export default function ModuleCard({
     if (type === "reading") {
       return <BookOpen className="h-4 w-4" />;
     }
-    if (type === "assignment") {
+    if (type === "quiz") {
       return <ClipboardCheck className="h-4 w-4" />;
     }
     return <Video className="h-4 w-4" />;
   };
 
   return (
-    <Card className={`space-y-3 border p-4 ${isActive ? "border-primary/40" : ""}`}>
+    <Card
+      className={`space-y-3 border p-4 ${isActive ? "border-primary/40" : ""}`}
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData("application/x-module-index", String(moduleIndex));
+        event.dataTransfer.effectAllowed = "move";
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        const sourceIndex = Number(event.dataTransfer.getData("application/x-module-index"));
+
+        if (!Number.isNaN(sourceIndex) && sourceIndex !== moduleIndex) {
+          onMoveModule(sourceIndex, moduleIndex);
+        }
+      }}
+    >
       <div className="flex flex-wrap items-center gap-3">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
         <FormField
@@ -76,6 +111,10 @@ export default function ModuleCard({
               <FormControl>
                 <Input
                   {...field}
+                  onChange={(event) => {
+                    field.onChange(event);
+                    onModuleTitleChange(moduleIndex, event.target.value);
+                  }}
                   className="h-8 border-transparent bg-white text-sm font-semibold text-foreground focus-visible:border-input"
                 />
               </FormControl>
@@ -84,10 +123,11 @@ export default function ModuleCard({
           )}
         />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{lessonCount} Draft</span>
-          <Button type="button" variant="ghost" size="icon-sm" aria-label="Rename module">
-            <Pencil className="h-4 w-4" />
-          </Button>
+          {isModuleUpdating ? <span>Saving...</span> : null}
+          <span>
+            {visibleLessonCount}/{lessonCount} Published
+          </span>
+
           <Button
             type="button"
             variant="outline"
@@ -111,6 +151,7 @@ export default function ModuleCard({
             const isSelected = isActive && lessonIndex === activeLessonIndex;
             const lesson = lessonValues[lessonIndex];
             const lessonTypeLabel = getLessonTypeLabel(lesson?.type);
+            const isVisible = lesson?.isPublished !== false;
             return (
               <div
                 key={lessonField.id}
@@ -119,6 +160,38 @@ export default function ModuleCard({
                     ? "border-primary/40 bg-muted/40 text-foreground"
                     : "border-muted bg-white text-muted-foreground hover:border-primary/30"
                 }`}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.setData("application/x-lesson-index", String(lessonIndex));
+                  event.dataTransfer.setData(
+                    "application/x-lesson-module-index",
+                    String(moduleIndex)
+                  );
+                  event.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+
+                  const sourceLessonIndex = Number(
+                    event.dataTransfer.getData("application/x-lesson-index")
+                  );
+                  const sourceModuleIndex = Number(
+                    event.dataTransfer.getData("application/x-lesson-module-index")
+                  );
+
+                  if (
+                    !Number.isNaN(sourceLessonIndex) &&
+                    !Number.isNaN(sourceModuleIndex) &&
+                    sourceModuleIndex === moduleIndex &&
+                    sourceLessonIndex !== lessonIndex
+                  ) {
+                    onMoveLesson(moduleIndex, sourceLessonIndex, lessonIndex);
+                  }
+                }}
               >
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-muted/60 text-muted-foreground">
@@ -133,14 +206,32 @@ export default function ModuleCard({
                     {lesson?.title || "New Lesson"}
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                      Draft
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] ${
+                        isVisible
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {isVisible ? "Published" : "Hidden"}
                     </span>
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       {lessonTypeLabel}
                     </span>
                   </span>
                 </button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label="Edit lesson"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onEditLesson(moduleIndex, lessonIndex);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
                 <Button
                   type="button"
                   variant="outline"

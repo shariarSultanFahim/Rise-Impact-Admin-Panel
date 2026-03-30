@@ -1,14 +1,16 @@
 "use client";
 
-import { AlertCircle, Calendar, Mail, Phone } from "lucide-react";
+import { Calendar, CheckCircle2, Mail, Trophy } from "lucide-react";
 
-import type { UserDetailsData } from "@/types/user-details";
+import type { UserManageDetailsItem } from "@/types/user-manage-details";
+
+import { formatDate, timeAgo } from "@/lib/date";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface UserDetailsProps {
-  data: UserDetailsData;
+  data: UserManageDetailsItem;
 }
 
 function getInitials(name: string) {
@@ -23,25 +25,22 @@ function statusBadgeClass(status: string) {
   if (normalized === "active") {
     return "bg-emerald-100 text-emerald-700";
   }
-  if (normalized === "inactive") {
-    return "bg-slate-100 text-slate-600";
+  if (normalized === "restricted") {
+    return "bg-amber-100 text-amber-700";
+  }
+  if (normalized === "delete") {
+    return "bg-rose-100 text-rose-700";
   }
   return "bg-muted text-muted-foreground";
 }
 
-function courseBadgeClass(status: string) {
-  const normalized = status.toLowerCase().replace(" ", "-");
-  if (normalized === "completed") {
-    return "bg-emerald-100 text-emerald-700";
-  }
-  if (normalized === "in-progress") {
-    return "bg-blue-100 text-blue-700";
-  }
-  return "bg-slate-100 text-slate-600";
-}
+const clampPercentage = (value: number) => {
+  return Math.max(0, Math.min(100, value));
+};
 
 export default function UserDetails({ data }: UserDetailsProps) {
-  const { info, stats, courses, recentActivity } = data;
+  const user = data;
+  const averageCompletion = clampPercentage(user.courseStats.averageCompletion);
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,167 +50,196 @@ export default function UserDetails({ data }: UserDetailsProps) {
           <div className="flex flex-col items-start gap-4 rounded-md bg-white p-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 bg-muted">
-                <AvatarImage
-                  src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${info.name.split(" ")[0]}`}
-                  alt={info.name}
-                />
+                <AvatarImage src={user.profilePicture} alt={user.name} />
                 <AvatarFallback className="text-sm font-semibold">
-                  {getInitials(info.name)}
+                  {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">{info.name}</h2>
+                <h2 className="text-xl font-semibold text-foreground">{user.name}</h2>
                 <div className="flex items-center gap-2">
                   <span
                     className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadgeClass(
-                      info.status
+                      user.status
                     )}`}
                   >
-                    {info.status}
+                    {user.status}
                   </span>
-                  <span className="text-xs font-medium text-muted-foreground">{info.role}</span>
+                  {user.role ? (
+                    <span className="text-xs font-medium text-muted-foreground">{user.role}</span>
+                  ) : null}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* User Info Grid */}
+          {/* User user Grid */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-1 rounded-lg bg-white p-3">
               <p className="text-xs font-medium text-muted-foreground">Email</p>
               <div className="flex items-center gap-2 text-sm text-foreground">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <a href={`mailto:${info.email}`} className="hover:underline">
-                  {info.email}
+                <a href={`mailto:${user.email}`} className="hover:underline">
+                  {user.email}
                 </a>
               </div>
             </div>
-            {info.phone && (
-              <div className="space-y-1 rounded-lg bg-white p-3">
-                <p className="text-xs font-medium text-muted-foreground">Phone</p>
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <a href={`tel:${info.phone}`} className="hover:underline">
-                    {info.phone}
-                  </a>
-                </div>
-              </div>
-            )}
             <div className="space-y-1 rounded-lg bg-white p-3">
               <p className="text-xs font-medium text-muted-foreground">Joined</p>
               <div className="flex items-center gap-2 text-sm text-foreground">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                {info.joinDate}
+                {formatDate(user.createdAt)}
+              </div>
+            </div>
+            <div className="space-y-1 rounded-lg bg-white p-3">
+              <p className="text-xs font-medium text-muted-foreground">Verified</p>
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                {user.verified ? "Yes" : "No"}
               </div>
             </div>
             <div className="space-y-1 rounded-lg bg-white p-3">
               <p className="text-xs font-medium text-muted-foreground">Last Active</p>
-              <p className="text-sm text-foreground">{info.lastActive}</p>
+              <p className="text-sm text-foreground">
+                {user.lastActiveDate ? timeAgo(user.lastActiveDate) : "Never"}
+              </p>
             </div>
           </div>
-
-          {/* Bio */}
-          {info.bio && (
-            <div className="space-y-2 rounded-lg bg-white p-3">
-              <p className="text-xs font-medium text-muted-foreground">Bio</p>
-              <p className="text-sm text-foreground">{info.bio}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.id} className="shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Points
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold text-foreground">{user.totalPoints}</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Current Streak
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold text-foreground">{user.streak.current} days</div>
+            <p className="text-xs text-muted-foreground">Active learning run</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Longest Streak
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold text-foreground">{user.streak.longest} days</div>
+            <p className="text-xs text-muted-foreground">
+              {user.streak.lastActiveDate
+                ? timeAgo(user.streak.lastActiveDate)
+                : "No recent activity"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Enrolled Courses */}
+      {/* Course Stats */}
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+            <Trophy className="h-5 w-5" />
+            Course Statistics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-1 rounded-lg bg-white p-3">
+              <p className="text-xs font-medium text-muted-foreground">Total Enrolled</p>
+              <p className="text-2xl font-semibold text-foreground">{user.courseStats.total}</p>
+            </div>
+            <div className="space-y-1 rounded-lg bg-white p-3">
+              <p className="text-xs font-medium text-muted-foreground">Active</p>
+              <p className="text-2xl font-semibold text-foreground">{user.courseStats.active}</p>
+            </div>
+            <div className="space-y-1 rounded-lg bg-white p-3">
+              <p className="text-xs font-medium text-muted-foreground">Completed</p>
+              <p className="text-2xl font-semibold text-foreground">{user.courseStats.completed}</p>
+            </div>
+            <div className="space-y-1 rounded-lg bg-white p-3 sm:col-span-3">
+              <p className="text-xs font-medium text-muted-foreground">Average Completion</p>
+              <div className="flex items-center justify-between">
+                <progress
+                  className="h-2 w-full flex-1 overflow-hidden rounded-full [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary"
+                  value={averageCompletion}
+                  max={100}
+                />
+                <span className="ml-3 text-sm font-semibold text-foreground">
+                  {averageCompletion}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">Enrolled Courses</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {courses.length === 0 ? (
-            <div className="flex items-center gap-2 rounded-lg bg-white p-4 text-sm text-muted-foreground">
-              <AlertCircle className="h-4 w-4" />
-              No courses enrolled yet
-            </div>
+          {user.enrolledCourses.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No enrolled courses found.</p>
           ) : (
-            courses.map((course) => (
-              <div
-                key={course.id}
-                className="space-y-2 rounded-lg border border-muted/40 bg-white p-4"
+            user.enrolledCourses.map((course) => (
+              <article
+                key={course.courseId}
+                className="flex flex-col gap-3 rounded-lg border border-border bg-white p-4"
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-foreground">{course.title}</h3>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-semibold ${courseBadgeClass(
-                      course.status
-                    )}`}
-                  >
-                    {course.status}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Progress</span>
-                    <span>{course.progress}%</span>
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-12 w-12 rounded-md">
+                    <AvatarImage src={course.thumbnail} alt={course.title} />
+                    <AvatarFallback className="rounded-md text-xs font-medium">
+                      {getInitials(course.title)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">{course.title}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadgeClass(
+                          course.status
+                        )}`}
+                      >
+                        {course.status}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {clampPercentage(course.completionPercentage)}% complete
+                      </span>
+                    </div>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-primary transition-all"
-                      style={{ width: `${course.progress}%` }}
-                    />
-                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-muted-foreground">
-                  <span>Enrolled: {course.enrolledDate}</span>
-                  {course.grade !== undefined && <span>Grade: {course.grade}%</span>}
+
+                <progress
+                  className="h-2 w-full overflow-hidden rounded-full [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary"
+                  value={clampPercentage(course.completionPercentage)}
+                  max={100}
+                />
+
+                <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                  <p>Enrolled: {formatDate(course.enrolledAt)}</p>
+                  <p>
+                    Last access:{" "}
+                    {course.lastAccessedAt ? formatDate(course.lastAccessedAt) : "Never"}
+                  </p>
                 </div>
-              </div>
+              </article>
             ))
           )}
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentActivity.length === 0 ? (
-              <div className="flex items-center gap-2 rounded-lg bg-white p-4 text-sm text-muted-foreground">
-                <AlertCircle className="h-4 w-4" />
-                No recent activity
-              </div>
-            ) : (
-              recentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center gap-3 rounded-md border-b border-muted/40 bg-white p-4 pb-3 last:border-0"
-                >
-                  <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-foreground">{activity.activity}</p>
-                    <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
         </CardContent>
       </Card>
     </div>

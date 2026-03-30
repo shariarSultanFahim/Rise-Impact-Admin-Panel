@@ -1,15 +1,4 @@
-import { Suspense } from "react";
-
-import { getLegalDocumentsData } from "@/data/legal-documents";
-
 import TermsForm from "./component/TermsForm";
-import TermsSkeleton from "./component/TermsSkeleton";
-
-async function TermsLoader() {
-  const data = await getLegalDocumentsData();
-
-  return <TermsForm data={data} />;
-}
 
 export default function TermsAndConditionsPage() {
   return (
@@ -21,9 +10,7 @@ export default function TermsAndConditionsPage() {
         </p>
       </div>
 
-      <Suspense fallback={<TermsSkeleton />}>
-        <TermsLoader />
-      </Suspense>
+      <TermsForm />
     </section>
   );
 }
