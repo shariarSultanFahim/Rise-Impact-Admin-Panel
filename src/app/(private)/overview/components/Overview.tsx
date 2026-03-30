@@ -209,7 +209,6 @@ export default function Overview({
                 ))
               : data.activities.map((activity) => {
                   const Icon = ICONS[activity.icon];
-
                   return (
                     <div
                       key={activity.id}

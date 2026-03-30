@@ -21,7 +21,7 @@ import { timeAgo } from "@/lib/date";
 import Overview from "./components/Overview";
 
 const DEFAULT_TREND_PERIOD: TrendPeriod = "6m";
-const DEFAULT_ACTIVITY_LIMIT = 20;
+const DEFAULT_ACTIVITY_LIMIT = 5;
 
 const EMPTY_STATISTIC: Statistic = {
   value: 0,
