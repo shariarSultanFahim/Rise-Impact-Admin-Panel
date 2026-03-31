@@ -58,7 +58,6 @@ export default function GradebookTable({
               <TableHead>Course</TableHead>
               <TableHead>Quizzes</TableHead>
               <TableHead>Avg %</TableHead>
-              <TableHead>Assignments</TableHead>
               <TableHead>Completion</TableHead>
               <TableHead>Last Activity</TableHead>
               <TableHead>Enrolled Date</TableHead>
@@ -85,9 +84,7 @@ export default function GradebookTable({
                 <TableCell>
                   <Skeleton className="h-8 w-32" />
                 </TableCell>
-                <TableCell>
-                  <Skeleton className="h-8 w-24" />
-                </TableCell>
+
                 <TableCell>
                   <Skeleton className="h-8 w-24" />
                 </TableCell>
@@ -129,7 +126,6 @@ export default function GradebookTable({
             <TableHead>Course</TableHead>
             <TableHead>Quizzes</TableHead>
             <TableHead>Avg %</TableHead>
-            <TableHead>Assignments</TableHead>
             <TableHead>Completion</TableHead>
             <TableHead>Last Activity</TableHead>
             <TableHead>Enrolled Date</TableHead>
@@ -164,9 +160,7 @@ export default function GradebookTable({
               <TableCell className={`text-sm ${scoreClass(student.overallQuizPercentage)}`}>
                 {student.overallQuizPercentage.toFixed(2)}%
               </TableCell>
-              <TableCell className="text-sm">
-                {student.assignmentsSubmitted}/{student.totalAssignments}
-              </TableCell>
+
               <TableCell>
                 <div className="flex items-center gap-2">
                   <progress

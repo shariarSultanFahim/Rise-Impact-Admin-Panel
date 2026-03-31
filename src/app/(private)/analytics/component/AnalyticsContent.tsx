@@ -119,6 +119,7 @@ const mapHeatmap = (data: Array<{ date: string; intensity: number }>): Analytics
 export default function AnalyticsContent() {
   const [dateRange, setDateRange] = useState<AnalyticsDateRange>("6m");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("all-courses");
+  const isAllCoursesSelected = selectedCourseId === "all-courses";
 
   const period = RANGE_PERIOD_MAP[dateRange];
   const heatmapPeriod = RANGE_HEATMAP_PERIOD_MAP[dateRange];
@@ -154,7 +155,7 @@ export default function AnalyticsContent() {
     isPending: isQuizPending,
     isFetching: isQuizFetching
   } = useGetAnalyticsCourseQuizzes({
-    courseId: selectedCourseId !== "all-courses" ? selectedCourseId : undefined,
+    courseId: !isAllCoursesSelected ? selectedCourseId : undefined,
     period,
     page: 1,
     limit: 10
@@ -209,15 +210,15 @@ export default function AnalyticsContent() {
       isTrendsFetching ||
       isCompletionFetching ||
       isHeatmapFetching ||
-      (selectedCourseId !== "all-courses" && (isQuizPending || isQuizFetching)));
+      (!isAllCoursesSelected && (isQuizPending || isQuizFetching)));
 
   const handleExport = async (format: "csv" | "xlsx") => {
     try {
       const result = await exportAnalytics({
-        type: selectedCourseId === "all-courses" ? "courses" : "quizzes",
+        type: isAllCoursesSelected ? "courses" : "quizzes",
         format,
         period,
-        course: selectedCourseId === "all-courses" ? undefined : selectedCourseId
+        course: isAllCoursesSelected ? undefined : selectedCourseId
       });
 
       downloadBlob(result.blob, result.fileName);
@@ -394,29 +395,31 @@ export default function AnalyticsContent() {
             </Card>
           </div>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Top Performing Courses</CardTitle>
-              <CardDescription>Completion performance across all courses.</CardDescription>
-            </CardHeader>
-            <TopCoursesChart data={topCourses} />
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Quiz Performance</CardTitle>
-              <CardDescription>
-                Quiz attempts and score quality for the selected course.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <QuizPerformanceTable
-                courseTitle={selectedCourse?.title}
-                hasSelection={selectedCourseId !== "all-courses"}
-                data={quizData?.data ?? []}
-              />
-            </CardContent>
-          </Card>
+          {isAllCoursesSelected ? (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">Top Performing Courses</CardTitle>
+                <CardDescription>Completion performance across all courses.</CardDescription>
+              </CardHeader>
+              <TopCoursesChart data={topCourses} />
+            </Card>
+          ) : (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">Quiz Performance</CardTitle>
+                <CardDescription>
+                  Quiz attempts and score quality for the selected course.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <QuizPerformanceTable
+                  courseTitle={selectedCourse?.title}
+                  hasSelection={!isAllCoursesSelected}
+                  data={quizData?.data ?? []}
+                />
+              </CardContent>
+            </Card>
+          )}
         </>
       ) : null}
 
