@@ -40,6 +40,18 @@ const nextConfig: NextConfig = {
         hostname: "10.10.7.33",
         port: "5003",
         pathname: "/**"
+      },
+      {
+        protocol: "https",
+        hostname: "lmsapi.zeroproofdrive.org",
+        port: "",
+        pathname: "/**"
+      },
+      {
+        protocol: "http",
+        hostname: "lmsapi.zeroproofdrive.org",
+        port: "",
+        pathname: "/**"
       }
     ]
   },

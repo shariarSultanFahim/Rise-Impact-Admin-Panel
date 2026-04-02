@@ -80,6 +80,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             alt={course.title}
             fill
             className="object-cover"
+            unoptimized
           />
           <figcaption className="sr-only">{course.title} course thumbnail</figcaption>
           <Badge className={`absolute top-3 right-3 ${STATUS_STYLES[course.status]}`}>
