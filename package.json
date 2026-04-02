@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "analyze": "cross-env ANALYZE=true next build --webpack && open .next/analyze/nodejs.html",
     "clean": "rimraf .next",
     "format": "prettier --write .",
